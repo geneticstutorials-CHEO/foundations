@@ -228,14 +228,6 @@ a.res-row:hover .ttl{color:var(--plum)}
 .res-row.todo{opacity:.72}
 .res-row.todo .ttl{color:var(--muted);font-weight:600}
 .tag.todo{background:#fff;color:var(--muted);border:1px dashed #c9c5cf}
-.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:22px}
-.grp{
-  text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:20px 12px;border-radius:6px;background:var(--plum);color:#fff;
-  font-size:15px;font-weight:800;letter-spacing:.01em;transition:background .15s,transform .15s
-}
-.grp:hover{background:var(--purple);transform:translateY(-2px)}
-
 /* note */
 .note{background:var(--tint);border-radius:6px;padding:20px 22px;margin-top:26px}
 .note h3{margin:0 0 7px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--plum)}
@@ -377,42 +369,9 @@ var LINKS = {
 };
 
 var UI = {
-  en:{cont:"Continue", next:"Next", group:"Group", todo:"Link to add", open:"Open", groups:"Your tutorial group", img:"Image to come", soon:"Coming this year", back:"Back to", home:"Home"},
-  fr:{cont:"Continuer", next:"Suivant", group:"Groupe", todo:"Lien à ajouter", open:"Ouvrir", groups:"Votre groupe de tutorat", img:"Image à venir", soon:"À venir cette année", back:"Retour à", home:"Accueil"}
+  en:{cont:"Continue", next:"Next", todo:"Link to add", open:"Open", img:"Image to come", soon:"Coming this year", back:"Back to", home:"Home"},
+  fr:{cont:"Continuer", next:"Suivant", todo:"Lien à ajouter", open:"Ouvrir", img:"Image à venir", soon:"À venir cette année", back:"Retour à", home:"Accueil"}
 };
-
-function groupPage(lang, tut, n, res){
-  var L = UI[lang];
-  return {
-    id: lang+"-t"+tut+"-g"+n,
-    slug: (lang==="en"?"english":"francais")+"/"+(lang==="en"?"tutorial":"tutorat")+"-"+tut+"/"+(lang==="en"?"group":"groupe")+"-"+n,
-    lang: lang, area: lang, parent: lang+"-t"+tut,
-    navTitle: L.group+" "+n,
-    eyebrow: (lang==="en"?"Tutorial ":"Tutorat ")+["","I","II","III"][tut],
-    title: L.group+" "+n,
-    blocks: [
-      {t:"lede", text: lang==="en"
-        ? "Open these on your device during the session. Everyone in the group works from the same page."
-        : "Ouvrez ces liens sur votre appareil pendant la séance. Tout le groupe travaille à partir de la même page."},
-      {t:"res", items: res}
-    ]
-  };
-}
-
-function stdGroupRes(lang){
-  var en = lang === "en";
-  return [
-    {ttl: en?"Patterns of inheritance activity":"Activité sur les modes de transmission",
-     sub: en?"Shared slides your group edits together.":"Diapositives partagées que votre groupe modifie ensemble.",
-     tag:"Slides", url:""},
-    {ttl: en?"Interactive questions: patterns of inheritance":"Questions interactives : modes de transmission",
-     sub:"", tag:"Form", url:""},
-    {ttl: en?"Interactive questions: genetic testing":"Questions interactives : tests génétiques",
-     sub:"", tag:"Form", url:""},
-    {ttl: en?"Interactive questions: genetic test results":"Questions interactives : résultats des tests",
-     sub:"", tag:"Form", url:""}
-  ];
-}
 
 var PAGES = [
 
@@ -462,21 +421,21 @@ var PAGES = [
   id:"en-module", slug:"english/karyotype-to-genome", lang:"en", area:"en", parent:null, navTitle:"Karyotype to Genome",
   eyebrow:"Karyotype to Genome", title:"From Karyotype to Genome: Making Genetic Testing Meaningful",
   blocks:[
-    {t:"lede", text:"In class, working from the module. The pre-work module is in Brightspace."},
+    {t:"lede", text:"In class, working from the module. The pre-work module is accessible through Brightspace."},
     {t:"h2", text:"Materials"},
     {t:"res", items:[
       {ttl:"Slide deck for students", sub:"The session deck, without the answers.", tag:"Slides", url:""},
       {ttl:"Slide deck with answers", sub:"Posted after the session.", tag:"Slides", url:""}
     ]},
     {t:"h2", text:"References and pre-work"},
-    {t:"p", text:"Done before the session. It is in Brightspace if you want to go back to it."}
+    {t:"p", text:"Done before the session. Accessible through Brightspace."}
   ]
 },
 {
   id:"en-t1", slug:"english/tutorial-1", lang:"en", area:"en", parent:null, navTitle:"Tutorial I",
   eyebrow:"Tutorial I", title:"Pedigrees, Inheritance and Chromosome changes",
   blocks:[
-    {t:"lede", text:"Two hours, in class. Bring a device (phone is fine). The pre-work module is in Brightspace."},
+    {t:"lede", text:"Two hours, in class. Bring a device (phone is fine). The pre-work module is accessible through Brightspace."},
     {t:"h2", text:"By the end you should be able to"},
     {t:"objs", items:[
       "Draw a pedigree with proper symbols and describe the relationship between individuals in it.",
@@ -497,43 +456,39 @@ var PAGES = [
     {t:"res", items:[
       {ttl:"Slide deck for students", sub:"The session deck, without the answers.", tag:"Slides", url:LINKS.t1Deck},
       {ttl:"Slide deck with answers", sub:"Posted after the session.", tag:"Slides", url:LINKS.t1DeckAns},
-      {ttl:"Karyotype Decoder", sub:"The nomenclature activity you work through in Block 3.", tag:"Activity", url:""},
-      {ttl:"Chromosome build worksheet", sub:"Used with the paper strips in Block 3.", tag:"PDF", url:""}
+      {ttl:"Chromosome builder", sub:"Lay the bands out on the bench to build each change, then classify it.", tag:"Activity", url:"chromosome-builder.html"},
+      {ttl:"Nomenclature decoder", sub:"Match each piece of a result to its meaning, write it in plain words, then classify it.", tag:"Activity", url:"nomenclature-decoder.html"}
     ]},
     {t:"h2", text:"References and pre-work"},
-    {t:"p", text:"Done before the session. It is in Brightspace if you want to go back to it."}
+    {t:"p", text:"Done before the session. Accessible through Brightspace."}
   ]
 },
 {
   id:"en-t2", slug:"english/tutorial-2", lang:"en", area:"en", parent:null, navTitle:"Tutorial II",
   eyebrow:"Tutorial II", title:"Determining risk, mutations and molecular techniques",
   blocks:[
-    {t:"lede", text:"Two hours, in class. The pre-work module is in Brightspace."},
+    {t:"lede", text:"Two hours, in class. The pre-work module is accessible through Brightspace."},
     {t:"h2", text:"Materials"},
     {t:"res", items:[
       {ttl:"Slide deck for students", sub:"", tag:"Slides", url:""},
       {ttl:"Slide deck with answers", sub:"Posted after the session.", tag:"Slides", url:""}
     ]},
-    {t:"h2", text:"Your tutorial group"},
-    {t:"groups", items:[{n:1,to:"en-t2-g1"},{n:2,to:"en-t2-g2"},{n:3,to:"en-t2-g3"},{n:4,to:"en-t2-g4"}]},
     {t:"h2", text:"References and pre-work"},
-    {t:"p", text:"Done before the session. It is in Brightspace if you want to go back to it."}
+    {t:"p", text:"Done before the session. Accessible through Brightspace."}
   ]
 },
 {
   id:"en-t3", slug:"english/tutorial-3", lang:"en", area:"en", parent:null, navTitle:"Tutorial III",
   eyebrow:"Tutorial III", title:"Alternate mechanisms, teratogens and ethics",
   blocks:[
-    {t:"lede", text:"Two hours, in class. The pre-work module is in Brightspace."},
+    {t:"lede", text:"Two hours, in class. The pre-work module is accessible through Brightspace."},
     {t:"h2", text:"Materials"},
     {t:"res", items:[
       {ttl:"Slide deck for students", sub:"", tag:"Slides", url:""},
       {ttl:"Slide deck with answers", sub:"Posted after the session.", tag:"Slides", url:""}
     ]},
-    {t:"h2", text:"Your tutorial group"},
-    {t:"groups", items:[{n:1,to:"en-t3-g1"},{n:2,to:"en-t3-g2"},{n:3,to:"en-t3-g3"},{n:4,to:"en-t3-g4"}]},
     {t:"h2", text:"References and pre-work"},
-    {t:"p", text:"Done before the session. It is in Brightspace if you want to go back to it."}
+    {t:"p", text:"Done before the session. Accessible through Brightspace."}
   ]
 },
 
@@ -543,14 +498,14 @@ var PAGES = [
   eyebrow:"Teratology", title:"Teratology",
   blocks:[
     {t:"pill", text:"Placeholder page"},
-    {t:"lede", text:"In class, working from the module. The pre-work module is in Brightspace."},
+    {t:"lede", text:"In class, working from the module. The pre-work module is accessible through Brightspace."},
     {t:"h2", text:"Materials"},
     {t:"res", items:[
       {ttl:"Slide deck for students", sub:"The session deck, without the answers.", tag:"Slides", url:""},
       {ttl:"Slide deck with answers", sub:"Posted after the session.", tag:"Slides", url:""}
     ]},
     {t:"h2", text:"References and pre-work"},
-    {t:"p", text:"Done before the session. It is in Brightspace if you want to go back to it."}
+    {t:"p", text:"Done before the session. Accessible through Brightspace."}
   ]
 },
 {
@@ -599,21 +554,21 @@ var PAGES = [
   id:"fr-module", slug:"francais/caryotype-au-genome", lang:"fr", area:"fr", parent:null, navTitle:"Du caryotype au génome",
   eyebrow:"Du caryotype au génome", title:"Du caryotype au génome : donner un sens aux tests génétiques",
   blocks:[
-    {t:"lede", text:"En classe, à partir du module. Le module préparatoire se trouve dans Brightspace."},
+    {t:"lede", text:"En classe, à partir du module. Le module préparatoire est accessible dans Brightspace."},
     {t:"h2", text:"Documents"},
     {t:"res", items:[
       {ttl:"Diaporama pour les étudiants", sub:"", tag:"Slides", url:""},
       {ttl:"Diaporama avec les réponses", sub:"Publié après la séance.", tag:"Slides", url:""}
     ]},
     {t:"h2", text:"Références et travail préparatoire"},
-    {t:"p", text:"À faire avant la séance. Le module se trouve dans Brightspace si vous souhaitez y revenir."}
+    {t:"p", text:"À faire avant la séance. Accessible dans Brightspace."}
   ]
 },
 {
   id:"fr-t1", slug:"francais/tutorat-1", lang:"fr", area:"fr", parent:null, navTitle:"Tutorat I",
   eyebrow:"Tutorat I", title:"Arbres généalogiques, hérédité et anomalies chromosomiques",
   blocks:[
-    {t:"lede", text:"Deux heures en classe. Apportez un appareil (un téléphone suffit). Le module préparatoire se trouve dans Brightspace."},
+    {t:"lede", text:"Deux heures en classe. Apportez un appareil (un téléphone suffit). Le module préparatoire est accessible dans Brightspace."},
     {t:"h2", text:"À la fin, vous devriez pouvoir"},
     {t:"objs", items:[
       "Dessiner un arbre généalogique avec les bons symboles et décrire les liens entre les personnes qui s'y trouvent.",
@@ -636,39 +591,35 @@ var PAGES = [
       {ttl:"Diaporama avec les réponses", sub:"Publié après la séance.", tag:"Slides", url:""}
     ]},
     {t:"h2", text:"Références et travail préparatoire"},
-    {t:"p", text:"À faire avant la séance. Le module se trouve dans Brightspace si vous souhaitez y revenir."}
+    {t:"p", text:"À faire avant la séance. Accessible dans Brightspace."}
   ]
 },
 {
   id:"fr-t2", slug:"francais/tutorat-2", lang:"fr", area:"fr", parent:null, navTitle:"Tutorat II",
   eyebrow:"Tutorat II", title:"Risque de maladie, mutations et techniques moléculaires",
   blocks:[
-    {t:"lede", text:"Deux heures en classe. Le module préparatoire se trouve dans Brightspace."},
+    {t:"lede", text:"Deux heures en classe. Le module préparatoire est accessible dans Brightspace."},
     {t:"h2", text:"Documents"},
     {t:"res", items:[
       {ttl:"Diaporama pour les étudiants", sub:"", tag:"Slides", url:""},
       {ttl:"Diaporama avec les réponses", sub:"Publié après la séance.", tag:"Slides", url:""}
     ]},
-    {t:"h2", text:"Votre groupe de tutorat"},
-    {t:"groups", items:[{n:1,to:"fr-t2-g1"},{n:2,to:"fr-t2-g2"}]},
     {t:"h2", text:"Références et travail préparatoire"},
-    {t:"p", text:"À faire avant la séance. Le module se trouve dans Brightspace si vous souhaitez y revenir."}
+    {t:"p", text:"À faire avant la séance. Accessible dans Brightspace."}
   ]
 },
 {
   id:"fr-t3", slug:"francais/tutorat-3", lang:"fr", area:"fr", parent:null, navTitle:"Tutorat III",
   eyebrow:"Tutorat III", title:"Mécanismes alternatifs, tératogènes et éthique",
   blocks:[
-    {t:"lede", text:"Deux heures en classe. Le module préparatoire se trouve dans Brightspace."},
+    {t:"lede", text:"Deux heures en classe. Le module préparatoire est accessible dans Brightspace."},
     {t:"h2", text:"Documents"},
     {t:"res", items:[
       {ttl:"Diaporama pour les étudiants", sub:"", tag:"Slides", url:""},
       {ttl:"Diaporama avec les réponses", sub:"Publié après la séance.", tag:"Slides", url:""}
     ]},
-    {t:"h2", text:"Votre groupe de tutorat"},
-    {t:"groups", items:[{n:1,to:"fr-t3-g1"},{n:2,to:"fr-t3-g2"}]},
     {t:"h2", text:"Références et travail préparatoire"},
-    {t:"p", text:"À faire avant la séance. Le module se trouve dans Brightspace si vous souhaitez y revenir."}
+    {t:"p", text:"À faire avant la séance. Accessible dans Brightspace."}
   ]
 },
 {
@@ -677,14 +628,14 @@ var PAGES = [
   eyebrow:"Tératologie", title:"Tératologie",
   blocks:[
     {t:"pill", text:"Espace réservé"},
-    {t:"lede", text:"En classe, à partir du module. Le module préparatoire se trouve dans Brightspace."},
+    {t:"lede", text:"En classe, à partir du module. Le module préparatoire est accessible dans Brightspace."},
     {t:"h2", text:"Documents"},
     {t:"res", items:[
       {ttl:"Diaporama pour les étudiants", sub:"", tag:"Slides", url:""},
       {ttl:"Diaporama avec les réponses", sub:"Publié après la séance.", tag:"Slides", url:""}
     ]},
     {t:"h2", text:"Références et travail préparatoire"},
-    {t:"p", text:"À faire avant la séance. Le module se trouve dans Brightspace si vous souhaitez y revenir."}
+    {t:"p", text:"À faire avant la séance. Accessible dans Brightspace."}
   ]
 },
 {
@@ -705,24 +656,6 @@ var PAGES = [
 }
 
 ];
-
-/* group pages, inserted after their tutorial */
-(function(){
-  var made = [
-    groupPage("en",2,1,stdGroupRes("en")), groupPage("en",2,2,stdGroupRes("en")),
-    groupPage("en",2,3,stdGroupRes("en")), groupPage("en",2,4,stdGroupRes("en")),
-    groupPage("en",3,1,stdGroupRes("en")), groupPage("en",3,2,stdGroupRes("en")),
-    groupPage("en",3,3,stdGroupRes("en")), groupPage("en",3,4,stdGroupRes("en")),
-    groupPage("fr",2,1,stdGroupRes("fr")), groupPage("fr",2,2,stdGroupRes("fr")),
-    groupPage("fr",3,1,stdGroupRes("fr")), groupPage("fr",3,2,stdGroupRes("fr"))
-  ];
-  made.forEach(function(g){
-    var i = PAGES.findIndex(function(p){ return p.id === g.parent; });
-    var j = i + 1;
-    while (j < PAGES.length && PAGES[j].parent === g.parent) j++;
-    PAGES.splice(j, 0, g);
-  });
-})();
 
 var SECTIONS = [
   {id:"home", label:null},
@@ -802,9 +735,6 @@ function blockHTML(b, page){
         if (!r.url) return '<div class="res-row todo">'+body+'<span class="tag todo">'+esc(L.todo)+'</span></div>';
         return '<a class="res-row" href="'+r.url+'" target="_blank" rel="noopener">'+body+
                '<span class="tag">'+esc(r.tag)+'</span><span style="color:var(--purple)">'+ARROW+'</span></a>';
-      }).join("")+'</div>';
-    case "groups":return '<div class="groups">'+b.items.map(function(g){
-        return '<a class="grp" href="#/'+byId[g.to].slug+'">'+esc(L.group)+' '+g.n+'</a>';
       }).join("")+'</div>';
     case "note":  return '<div class="note"><h3>'+esc(b.h)+'</h3><p>'+esc(b.p)+'</p></div>';
     default:      return "";
