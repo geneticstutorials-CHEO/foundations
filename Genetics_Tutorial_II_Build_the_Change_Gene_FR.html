@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construire le changement - Gène</title>
+<style>
+  :root{
+    --plum:#6d2c66; --plum-deep:#4a1d45; --plum-soft:#f3ecf2; --accent:#a24c98;
+    --bg:#faf7fb; --card:#fff; --ink:#2a1f2b; --muted:#6b5f6a; --line:#e7dde6;
+    --good:#2e7d4f; --good-bg:#e8f5ee; --bad:#c0392b; --bad-bg:#fdecea;
+    --warn:#b8860b; --path:#c0392b; --path-bg:#fdecea;
+    --A:#1368A8; --T:#C6551C; --C:#12876A; --G:#6B2FA0; --Gink:#fff;
+    --shadow:0 1px 3px rgba(74,29,69,.08),0 6px 18px rgba(74,29,69,.06); --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;margin:0 auto;max-width:1120px;padding:16px}
+  h1{font-size:1.5rem;margin:.2rem 0 .1rem;color:var(--plum-deep)}
+  .sub{color:var(--muted);margin:0 0 14px;font-size:.95rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .pad{padding:14px 16px}
+  .section-label{font-weight:700;color:var(--plum);font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px}
+  .want{font-size:.8rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .case-text{margin:.4rem 0 .6rem;font-size:.97rem}
+  .result{font-size:.95rem;color:var(--muted)}
+  .tlink{color:var(--plum-deep);text-decoration:underline}
+  .tlink:hover{color:var(--accent)}
+  .interp{margin:.7rem 0 0;font-size:.9rem;line-height:1.5;color:var(--ink);background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 13px}
+  .interp .ilab{display:block;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--plum);margin-bottom:3px}
+  .interp p{margin:0 0 .5em}
+  .interp p:last-child{margin-bottom:0}
+  .interp .tlink{color:inherit}
+  .interp strong{color:inherit;font-weight:700}
+  .interp.task strong{color:var(--plum-deep);font-weight:700}
+  .detect{color:var(--accent);font-weight:700}
+  .nomen{color:var(--plum-deep)}
+  .nomen .vcall{font-weight:700}
+  .nomen .gene{color:var(--accent)}
+  .nomen .vtag{font-weight:400;color:var(--muted)}
+  .condition{margin:.6rem 0 0;font-size:.9rem;color:var(--ink);border-top:1px solid var(--line);padding-top:.6rem}
+  .condition .clab{font-weight:700;color:var(--plum);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;margin-right:7px}
+  .condlink{font-weight:700;color:var(--plum-deep);text-decoration:underline}
+  .condlink:hover{color:var(--accent)}
+  .condwhat{display:block;font-size:.78rem;color:var(--muted);margin-top:3px}
+
+  .workspace{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .instructions{margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 20px;align-items:start}
+  .instructions h3{grid-column:1/-1;margin:0 0 3px;font-size:.9rem;color:var(--plum-deep)}
+  .instructions .hnote{grid-column:1/-1;font-size:.82rem;font-style:italic;color:var(--muted);margin:0 0 4px}
+  .instructions .legend{grid-column:1/-1}
+  .instr{display:flex;gap:9px;margin:0 0 6px;font-size:.84rem}
+  .instr .ic{flex:none;width:25px;height:25px;border-radius:7px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem}
+  .instr b{color:var(--plum-deep)}
+  .legend{margin-top:6px;font-size:.79rem;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+  .stage-wrap{flex:1 1 440px;min-width:300px}
+
+  .seqblock{margin:2px 0 6px}
+  .seqlab{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .seqlab.you{color:var(--plum)}
+  .strand{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px;background:#fbf8fb;border:1px solid var(--line);border-radius:10px;padding:10px 8px 8px}
+  .codon{display:flex;flex-direction:column;align-items:center;position:relative;margin:0 6px 6px;padding:5px 6px;border:1.5px solid var(--line);border-radius:9px;background:#fff}
+  .codon.clk{cursor:pointer}
+  .codon.clk:hover{border-color:#cbb3c6;background:#fdfbfd}
+  .codon.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,76,152,.20)}
+  .cnum{display:flex;align-items:center;justify-content:center;gap:3px;font-size:.68rem;color:var(--plum-deep);font-weight:800;margin-bottom:3px}
+  .aatag{font-size:.5rem;font-weight:800;color:var(--plum);background:var(--plum-soft);border:1px solid #e6d6e3;border-radius:4px;padding:0 3px;letter-spacing:.03em;text-transform:uppercase;line-height:1.5}
+  .numkey{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin:0 0 9px}
+  .numkey .k{display:flex;align-items:center;gap:6px}
+  .numkey .kaa{font-weight:800;color:var(--plum-deep)}
+  .numkey .kaa .aanum{font-weight:600;opacity:.78}
+  .numkey .knt{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.74rem;color:#8a7d86;font-weight:800}
+  .bases{display:flex;align-items:center}
+  .base{width:30px;height:34px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.05rem;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;border-radius:5px;margin:0 1px}
+  .base.A{background:var(--A)} .base.T{background:var(--T)} .base.C{background:var(--C)} .base.G{background:var(--G);color:var(--Gink)}
+  .strand.editable .base{cursor:grab;touch-action:none}
+  .strand.editable .base:hover{outline:2px solid var(--accent);outline-offset:1px}
+  .strand.editable .base:active{cursor:grabbing}
+  .base.drop-hover{outline:3px solid var(--accent);outline-offset:2px}
+  .caa{margin-top:3px;font-size:.78rem;font-weight:700;color:var(--plum-deep);white-space:nowrap}
+  .caa.stop{color:var(--bad)}
+  .caa.changed{color:var(--accent)}
+  .aanum{font-weight:600;opacity:.78}
+  .caa.clk{cursor:pointer}
+  .caa.clk:hover{text-decoration:underline;filter:brightness(1.15)}
+  .cpos{display:flex;align-items:center;margin-top:3px}
+  .cp{width:30px;margin:0 1px;text-align:center;font-size:11px;line-height:1;color:#7d7079;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;letter-spacing:-.2px}
+  .cp.ref{color:var(--accent);font-weight:800}
+  .codon.after{opacity:.32}
+  .codon.gap .bases{opacity:.25;filter:grayscale(1)}
+  .slot{width:9px;align-self:stretch;min-height:30px;border-radius:4px;cursor:pointer;position:relative}
+  .strand.editable .slot:hover{background:#ecd9e8}
+  .strand.editable .slot::after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--accent);font-weight:800;font-size:.8rem;opacity:0}
+  .strand.editable .slot:hover::after{opacity:.9}
+  .slot.drop-hover{background:#c98fc0;width:16px}
+  .strand.editable .slot.drop-hover::after{opacity:1;color:#fff}
+  .cell{display:flex;align-items:flex-end}
+  .spacer{width:9px;flex:none;align-self:stretch}
+
+  .repeatbox{background:#fbf8fb;border:1px solid var(--line);border-radius:10px;padding:12px}
+  .repeatline{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-bottom:8px}
+  .rep{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:.8rem;color:#fff;background:#b3a2b0;border-radius:5px;padding:3px 5px}
+  .rep.extra{background:var(--bad);box-shadow:0 0 0 1px #fff}
+  .nline{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:1.5rem;color:var(--plum-deep);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0}
+  .ninput{font:inherit;width:6rem;padding:5px 10px;border:2px solid var(--accent);border-radius:9px;color:var(--plum-deep);text-align:center;background:#fff}
+  .ninput:focus{outline:none;box-shadow:0 0 0 3px rgba(162,76,152,.18)}
+  /* zone slider: grow the CTG repeat past the threshold */
+  .sliderwrap{position:relative;height:30px;margin:6px 2px 3px}
+  .slidertrack{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:14px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+  .thrmark{position:absolute;top:50%;transform:translate(-50%,-50%);width:3px;height:26px;background:#1f1f1f;border-radius:2px;box-shadow:0 0 0 1px #fff}
+  .nslider{position:relative;-webkit-appearance:none;appearance:none;width:100%;background:transparent;margin:0;height:30px;cursor:pointer}
+  .nslider:focus{outline:none}
+  .nslider::-webkit-slider-runnable-track{height:30px;background:transparent}
+  .nslider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--plum);box-shadow:0 2px 6px rgba(74,29,69,.35);margin-top:2px}
+  .nslider::-moz-range-track{height:30px;background:transparent}
+  .nslider::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--plum);box-shadow:0 2px 6px rgba(74,29,69,.35)}
+  .nslider:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(162,76,152,.25),0 2px 6px rgba(74,29,69,.35)}
+  .nslider:focus::-moz-range-thumb{box-shadow:0 0 0 4px rgba(162,76,152,.25),0 2px 6px rgba(74,29,69,.35)}
+  .slider-scale{position:relative;height:16px;font-size:.7rem;color:var(--muted);margin-bottom:10px}
+  .slider-scale>span:first-child{position:absolute;left:0}
+  .slider-scale>span:last-child{position:absolute;right:0}
+  .slider-scale .thrlbl{position:absolute;transform:translateX(-50%);white-space:nowrap;color:#1f1f1f;font-weight:700}
+  .nbig{font-size:1.9rem;color:var(--plum-deep);min-width:2rem;text-align:center}
+  .nband{font-size:.92rem;font-weight:800}
+  /* live CTG repeat strip */
+  .repstrip{margin:12px 0 2px}
+  .repstrip-empty{font-size:.82rem;color:var(--muted);font-style:italic;padding:4px 0}
+  .repstrip-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:5px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 10px 8px}
+  .repcodon{display:flex;flex-direction:column;align-items:center;margin:0 1px;padding:4px 5px;border:1.5px solid var(--line);border-radius:9px;background:#fff}
+  .repcodon .bases{display:flex}
+  .repcodon .base{width:22px;height:26px;font-size:.85rem;border-radius:4px}
+  .repcodon .caa{margin-top:3px;font-size:.66rem;font-weight:700;color:var(--plum-deep)}
+  .repbracket{align-self:center;font-size:1.7rem;font-weight:800;color:var(--plum-deep);font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;line-height:1}
+  .repbracket .repsub{font-size:.9rem;vertical-align:sub}
+  .repdots{align-self:center;font-size:1.4rem;font-weight:800;color:var(--muted);padding:0 2px}
+  .repstrip-cap{margin-top:6px;font-size:.79rem;color:var(--muted);line-height:1.45}
+  /* live report readout */
+  .rr{margin:10px 0 2px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:9px 12px;background:#fff}
+  .rr .rr-lab{display:block;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--plum);margin-bottom:3px}
+  .rr b{color:var(--plum-deep);font-size:.95rem}
+  .rr p{margin:.35rem 0 0;font-size:.86rem;line-height:1.5;color:var(--ink)}
+  .rr-wait{border-left-color:#b3a2b0;background:#fbf8fb}
+  .rr-norm{border-left-color:#b3a2b0;background:#fbf8fb}
+  .rr-inter{border-left-color:var(--T);background:#fdf3ec}
+  .rr-inter b{color:var(--T)}
+  .rr-path{border-left-color:var(--good);background:var(--good-bg)}
+  .rr-path b{color:var(--good)}
+  .rr-path .rr-lab{color:var(--good)}
+  .repctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .repcount{font-weight:800;color:var(--plum-deep);font-size:1.05rem}
+  /* make-the-repeat button + repeat-size reference ladder */
+  .makebtn-row{margin:10px 0 2px}
+  .repref{margin:14px 0 2px}
+  .repref-title{font-weight:700;color:var(--plum);font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px}
+  .repref-sub{font-size:.8rem;color:var(--muted);font-style:italic;margin:0 0 8px}
+  .repband{position:relative;border-radius:8px;padding:8px 12px 8px 18px;margin-bottom:6px;overflow:hidden;opacity:.6;transition:opacity .12s}
+  .repband .bar{position:absolute;left:0;top:0;bottom:0;width:7px}
+  .repband.on{opacity:1;box-shadow:0 0 0 2px var(--plum-deep)}
+  .repband-head{font-size:.9rem;color:var(--ink);line-height:1.35}
+  .repband-head .bn{font-weight:800}
+  .repband-head .br{font-weight:700;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .repband-you{float:right;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:var(--plum-deep);color:#fff;border-radius:20px;padding:2px 10px;white-space:nowrap}
+  .repband-eff{font-size:.8rem;color:var(--muted);margin-top:2px}
+  /* task callout + result checkmark */
+  .interp.task{background:var(--plum-soft);border-left-width:5px;border-left-color:var(--plum);font-size:.95rem}
+  .interp.task .ilab{color:var(--plum);font-size:.74rem}
+  .interp.task strong{color:var(--plum-deep)}
+  .rr-check{color:var(--good);font-weight:800;font-size:1.05rem}
+  .repstate{font-size:.82rem;font-weight:700;padding:3px 9px;border-radius:20px}
+  .repstate.norm{background:var(--good-bg);color:var(--good)}
+  .repstate.inter{background:#fff8e6;color:var(--warn)}
+  .repstate.path{background:var(--bad-bg);color:var(--bad)}
+
+  .pop{position:fixed;z-index:9999;background:#fff;border:1px solid var(--line);border-radius:11px;box-shadow:0 10px 26px rgba(74,29,69,.22);padding:7px;display:flex;gap:5px}
+  .pop button{width:34px;height:38px;border:none;border-radius:8px;color:#fff;font-weight:800;font-family:"SF Mono",ui-monospace,monospace;cursor:pointer;font-size:1rem}
+  .pop .pA{background:var(--A)} .pop .pT{background:var(--T)} .pop .pC{background:var(--C)} .pop .pG{background:var(--G);color:var(--Gink)}
+  .pop .px{background:#fff;color:var(--bad);border:1.5px solid var(--bad);font-size:.95rem}
+  .tray{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 2px;padding:10px 12px;background:var(--plum-soft);border:1px solid var(--line);border-radius:11px}
+  .traylab{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .traybase{width:40px;height:42px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.1rem;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;border-radius:9px;cursor:grab;touch-action:none;user-select:none;box-shadow:0 1px 2px rgba(0,0,0,.16)}
+  .traybase:active{cursor:grabbing}
+  .traybase.A{background:var(--A)} .traybase.T{background:var(--T)} .traybase.C{background:var(--C)} .traybase.G{background:var(--G);color:var(--Gink)}
+  .trash{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--muted);border:1.5px dashed #cbb9c6;border-radius:10px;padding:9px 14px;min-height:42px}
+  .trash .tx{font-size:1rem;line-height:1}
+  .trash.hot{border-color:var(--bad);border-style:solid;color:var(--bad);background:var(--bad-bg)}
+  .dragghost{position:fixed;z-index:9999;pointer-events:none;width:34px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.05rem;font-family:"SF Mono",ui-monospace,monospace;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.3);opacity:.96}
+  .dragghost.A{background:var(--A)} .dragghost.T{background:var(--T)} .dragghost.C{background:var(--C)} .dragghost.G{background:var(--G);color:var(--Gink)}
+
+  .reftable-wrap{flex:0 0 208px;max-width:208px}
+  .refintro{font-size:.79rem;color:var(--muted);margin:0 0 8px}
+  .reftbl-scroll{border:1px solid var(--line);border-radius:10px}
+  .reftbl{width:100%;border-collapse:collapse;font-size:12px}
+  .reftbl thead th{position:sticky;top:0;text-align:left;font-size:10.5px;font-weight:800;color:#fff;background:var(--plum);padding:6px 8px;letter-spacing:.02em}
+  .reftbl td{padding:4px 8px;vertical-align:top;border-bottom:1px solid #EEE8F1}
+  .reftbl .ab{font-weight:800;color:var(--plum)}
+  .reftbl .nm{color:#6b5f6a;font-size:11px}
+  .reftbl .cod{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;color:#333;font-size:11px;line-height:1.55}
+  .reftbl tbody tr:nth-child(even) td{background:#faf7fb}
+  .reftbl tbody tr.stop .ab,.reftbl tbody tr.stop .cod{color:var(--bad)}
+  .reftbl tbody tr.pick td{background:#FFE86B}
+  .reftbl tbody tr.pick td:first-child{box-shadow:inset 5px 0 0 var(--accent)}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  button.btn{border:none;border-radius:10px;padding:11px 16px;font-size:.9rem;font-weight:700;cursor:pointer;min-height:44px;transition:filter .15s,transform .05s}
+  button.btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--plum);color:#fff} .btn.primary:hover{filter:brightness(1.08)}
+  .btn.ghost{background:#fff;color:var(--muted);border:1.5px solid var(--line)}
+  .btn.muted{opacity:.45}
+  .btn.rep{padding:9px 14px;background:#fff;border:1.5px solid var(--accent);color:var(--accent)}
+  .btn.rep:hover{background:var(--accent);color:#fff}
+
+  .classify{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px}
+  .cgroup{display:flex;flex-direction:column;gap:6px}
+  .cgroup .lbl2{font-size:.8rem;color:var(--muted);font-weight:700}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opt{border:1.5px solid var(--line);background:#fff;padding:9px 13px;border-radius:8px;font-size:.88rem;cursor:pointer;min-height:44px}
+  .opt[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .req-tag{font-weight:600;color:var(--accent);font-size:.72rem}
+  #subGroup.dim{opacity:.45}
+
+  #feedback{margin-top:14px}
+  .fb{border-radius:12px;padding:14px 16px;margin-top:10px}
+  .fb.ok{background:var(--good-bg);border:1px solid #bfe3cd}
+  .fb.no{background:var(--bad-bg);border:1px solid #f3c6c0}
+  .fb.info{background:#fff;border:1px solid var(--line)}
+  .fb h3{margin:.1rem 0 .4rem;font-size:1.05rem}
+  .fb.ok h3{color:var(--good)} .fb.no h3{color:var(--bad)}
+  .read{margin:.4rem 0;font-size:.92rem}
+  .attempt-nomen{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:700;color:var(--plum-deep)}
+  .cline{font-size:.88rem;margin-top:4px}
+  .cline.match{color:var(--good)}
+  .explain textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-size:.95rem;font-family:inherit;resize:vertical;min-height:70px}
+  .explain textarea:focus{outline:none;border-color:var(--accent)}
+  .path-panel{margin-top:10px;background:var(--path-bg);border:1px solid #f3c6c0;border-left:4px solid var(--path);border-radius:10px;padding:12px 14px}
+  .path-panel h4{margin:0 0 4px;color:var(--path);font-size:.95rem}
+  .benign-panel{margin-top:10px;background:#fff8e6;border:1px solid #f0e0b0;border-left:4px solid var(--warn);border-radius:10px;padding:12px 14px}
+  .benign-panel h4{margin:0 0 4px;color:var(--warn);font-size:.95rem}
+  .morelink{margin:8px 0 0;font-weight:600;font-size:.86rem}
+  .morelink a{color:var(--plum-deep);text-decoration:underline}
+  .morelink a:hover{color:var(--accent)}
+  .modelq{margin-top:10px;background:#fff;border:1px solid var(--line);border-left:5px solid var(--plum);border-radius:10px;padding:12px 14px;font-size:.92rem;font-style:italic;color:var(--ink)}
+  .modelq b{font-style:normal;color:var(--plum-deep);display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .nav{display:flex;justify-content:space-between;margin-top:14px;gap:8px}
+  .casebar{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:8px 12px 8px 9px;cursor:pointer;min-height:44px;font-size:.86rem;transition:border-color .12s,box-shadow .12s}
+  .chip:hover{border-color:#cbb3c6}
+  .chip .cn{width:23px;height:23px;flex:none;border-radius:50%;background:var(--plum-soft);color:var(--plum);font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+  .chip .cg{font-weight:800;color:var(--plum-deep)}
+  .chip .ct{color:var(--muted);font-size:.8rem}
+  .chip .mark{width:20px;height:20px;flex:none;border-radius:50%;border:1.6px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:transparent}
+  .chip.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,76,152,.18)}
+  .chip.cur .cn{background:var(--accent);color:#fff}
+  .chip.done .mark{background:var(--good);border-color:var(--good);color:#fff}
+  .chip.done .cg{color:var(--good)}
+  body.noselect,body.noselect *{user-select:none!important;-webkit-user-select:none!important}
+  @media(max-width:560px){
+    body{padding:12px}
+    .stage-wrap{order:1}
+    .reftable-wrap{flex:1 1 100%;max-width:100%;order:2}
+    .base{width:26px;height:31px;font-size:.95rem}
+    .cp{width:26px;font-size:10px}
+    .genemap{flex-direction:column}
+    .genemap .utr{border-left:none;border-top:2px dashed #cbb9c6}
+  }
+  /* mechanism (case 6): reason about consequence, no sequence edit */
+  .genemap{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:2px 0 16px}
+  .genemap .gm{padding:10px 13px}
+  .genemap .coding{flex:1 1 52%;background:#efe6f1}
+  .genemap .utr{flex:1 1 48%;background:#fbf3ea;border-left:2px dashed #cbb9c6}
+  .genemap .gmt{font-size:.8rem;font-weight:800;color:var(--ink);margin:0 0 3px}
+  .genemap .coding .gmt{color:var(--plum)}
+  .genemap .gmd{font-size:.74rem;color:var(--muted);line-height:1.38}
+  .genemap .gmrep{margin-top:5px;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:.92rem;color:var(--plum-deep)}
+  .mstep{margin:0 0 15px}
+  .mq{font-size:.92rem;line-height:1.5;margin:0 0 8px}
+  .mq b{color:var(--plum-deep)}
+  .mopts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 7px}
+  .mopt{font:inherit;font-size:.86rem;line-height:1.35;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;color:var(--ink);transition:border-color .12s,background .12s;min-height:40px}
+  .mopt:hover{border-color:#cbb3c6}
+  .mopt[aria-pressed="true"]{font-weight:600}
+  .mopt.right{border-color:var(--good);background:var(--good-bg);color:var(--good)}
+  .mopt.wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+  .mmsg{font-size:.86rem;line-height:1.45}
+  .mmsg .mok{color:var(--good)}
+  .mmsg .mno{color:var(--bad)}
+</style>
+</head>
+<body>
+  <h1>Construire le changement - Gène</h1>
+  <p class="sub">Tutorat de génétique II</p>
+
+  <div class="card pad" style="margin-bottom:14px">
+    <p class="section-label" style="margin-bottom:9px">Choisissez un cas</p>
+    <div class="casebar" id="casebar"></div>
+  </div>
+
+  <div class="card pad" style="margin-bottom:14px">
+    <div class="want">Le cas</div>
+    <p class="case-text" id="caseText"></p>
+    <div class="result">Résultat (<span class="detect" id="detect"></span>): <span class="nomen" id="nomen"></span></div>
+    <div class="interp" id="interp"></div>
+  </div>
+
+  <aside class="instructions card pad" id="howto">
+    <h3>Comment le construire</h3>
+    <div class="instr"><span class="ic">1</span><div><b>Cliquez sur une base</b> pour la modifier ou la supprimer.</div></div>
+    <div class="instr"><span class="ic">&#10003;</span><div><b>Classez et expliquez.</b> Sélectionnez le type de variant et le sous-type, puis expliquez-le en mots simples.</div></div>
+    <div class="legend">L'acide aminé sous chaque triplet se met à jour à mesure que vous modifiez la séquence.</div>
+  </aside>
+
+  <div class="workspace">
+    <div class="stage-wrap">
+      <div class="card pad">
+        <p class="section-label" style="margin-bottom:4px" id="buildLabel">Construire le changement</p>
+        <p style="margin:0 0 12px;font-size:.85rem;color:var(--muted)" id="buildSub">Faites correspondre votre séquence au résultat ci-dessus.</p>
+        <div class="seqblock"><div class="seqlab">Référence (normale)</div>
+          <div id="refStrand" class="strand"></div></div>
+        <div class="seqblock"><div class="seqlab you">Votre séquence</div><div id="workStrand" class="strand editable"></div></div>
+        <div class="tray" id="tray">
+          <span class="traylab">Glissez une base</span>
+          <div class="traybase A" data-base="A">A</div>
+          <div class="traybase T" data-base="T">T</div>
+          <div class="traybase C" data-base="C">C</div>
+          <div class="traybase G" data-base="G">G</div>
+          <div class="trash" id="trash"><span class="tx">&#215;</span> Supprimer</div>
+        </div>
+        <div id="repeatArea"></div>
+        <div class="toolbar">
+          <button class="btn ghost" id="resetBtn">Réinitialiser à la référence</button>
+        </div>
+      </div>
+      <div class="card pad" style="margin:12px 0 0">
+        <p class="section-label">Classez le type <span class="req-tag">requis pour continuer</span></p>
+        <div class="classify">
+          <div class="cgroup"><span class="lbl2">Quel type de changement?</span>
+            <div class="opts" id="catOpts">
+              <button class="opt" data-cat="point" aria-pressed="false">Ponctuel</button>
+              <button class="opt" data-cat="indel" aria-pressed="false">INDEL</button>
+              <button class="opt" data-cat="dynamic" aria-pressed="false">Dynamique</button>
+            </div></div>
+          <div class="cgroup" id="subGroup"><span class="lbl2" id="subLbl">Puis le type précis</span>
+            <div class="opts" id="subOpts"></div></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn primary" id="checkBtn">Vérifier</button>
+        <button class="btn ghost" id="nudgeBtn">Besoin d'un indice?</button>
+      </div>
+      <div id="feedback"></div>
+    </div>
+
+    <aside class="reftable-wrap card pad" id="refCard">
+      <p class="section-label">Référence des acides aminés</p>
+      <p class="refintro">Cliquez sur une base pour voir ce que son codon épelle.</p>
+      <div class="reftbl-scroll"><table class="reftbl"><thead><tr><th>Acide aminé</th><th>Codons</th></tr></thead><tbody id="reftbl"></tbody></table></div>
+    </aside>
+  </div>
+
+  <div class="nav"><button class="btn ghost" id="prevBtn">&lsaquo; Précédent</button><button class="btn ghost" id="nextBtn">Suivant &rsaquo;</button></div>
+
+<script>
+(function(){
+  "use strict";
+  /* ---------- genetic code ---------- */
+  var CODON={TTT:"F",TTC:"F",TTA:"L",TTG:"L",CTT:"L",CTC:"L",CTA:"L",CTG:"L",ATT:"I",ATC:"I",ATA:"I",ATG:"M",
+    GTT:"V",GTC:"V",GTA:"V",GTG:"V",TCT:"S",TCC:"S",TCA:"S",TCG:"S",CCT:"P",CCC:"P",CCA:"P",CCG:"P",
+    ACT:"T",ACC:"T",ACA:"T",ACG:"T",GCT:"A",GCC:"A",GCA:"A",GCG:"A",TAT:"Y",TAC:"Y",TAA:"*",TAG:"*",
+    CAT:"H",CAC:"H",CAA:"Q",CAG:"Q",AAT:"N",AAC:"N",AAA:"K",AAG:"K",GAT:"D",GAC:"D",GAA:"E",GAG:"E",
+    TGT:"C",TGC:"C",TGA:"*",TGG:"W",CGT:"R",CGC:"R",CGA:"R",CGG:"R",AGT:"S",AGC:"S",AGA:"R",AGG:"R",
+    GGT:"G",GGC:"G",GGA:"G",GGG:"G"};
+  var AA3={A:"Ala",R:"Arg",N:"Asn",D:"Asp",C:"Cys",E:"Glu",Q:"Gln",G:"Gly",H:"His",I:"Ile",L:"Leu",K:"Lys",
+    M:"Met",F:"Phe",P:"Pro",S:"Ser",T:"Thr",W:"Trp",Y:"Tyr",V:"Val"};
+  var AAFULL={A:"Alanine",R:"Arginine",N:"Asparagine",D:"Aspartate",C:"Cystéine",E:"Glutamate",Q:"Glutamine",
+    G:"Glycine",H:"Histidine",I:"Isoleucine",L:"Leucine",K:"Lysine",M:"Méthionine",F:"Phénylalanine",
+    P:"Proline",S:"Sérine",T:"Thréonine",W:"Tryptophane",Y:"Tyrosine",V:"Valine"};
+  function codonsForAA(L){ var o=[]; for(var c in CODON){ if(CODON[c]===L) o.push(c); } return o; }
+  function codonsOf(arr){ var out=[]; for(var i=0;i<arr.length;i+=3) out.push(arr.slice(i,i+3)); return out; }
+  function aaOf(triplet){ if(triplet.length<3) return "?"; var c=CODON[triplet.join("")]; return c===undefined?"?":c; }
+
+  var SUBS={
+    point:[["missense","Faux-sens"],["nonsense","Non-sens"],["silent","Silencieux"]],
+    indel:[["frameshift","Décalage du cadre de lecture"],["inframe","Délétion en phase"]],
+    dynamic:[["expansion","Expansion de répétitions"]]
+  };
+
+  /* ---------- cases ---------- */
+  function S(str){ return str.split(""); }
+  function withBase(str,idx,base){ var a=S(str); a[idx]=base; return a.join(""); }
+  function without(str,idxs){ var a=S(str); idxs.slice().sort(function(x,y){return y-x;}).forEach(function(i){ a.splice(i,1); }); return a.join(""); }
+  // Short representative windows; the gene, variant type and named variant follow real CHEO GDL tests.
+  var HFE="GGGTGCGGCTGG";       // Gly Cys282 Gly Trp
+  var MYBPC3="AAGCTGGCCGAT";    // Lys Leu1000 Ala Asp
+  var BRCA1N="GAACGACTTAGC";    // Glu Arg1443 Leu Ser
+  var BRCA1F="GTCGAGTACGTACAA"; // Val Glu23 Tyr Val Gln
+  var MYH7="AAGGAGCTGGCC";      // Lys Glu Leu930 Ala
+
+  // GeneReviews "learn more" links, keyed by gene (verified NBK IDs)
+  var HELP={
+    HFE:{cond:"Hémochromatose héréditaire", label:"L'hémochromatose liée à HFE sur GeneReviews", url:"https://www.ncbi.nlm.nih.gov/books/NBK1440/"},
+    MYBPC3:{cond:"Cardiomyopathie hypertrophique", label:"La cardiomyopathie hypertrophique sur GeneReviews", url:"https://www.ncbi.nlm.nih.gov/books/NBK1768/"},
+    MYH7:{cond:"Cardiomyopathie hypertrophique", label:"La cardiomyopathie hypertrophique sur GeneReviews", url:"https://www.ncbi.nlm.nih.gov/books/NBK1768/"},
+    BRCA1:{cond:"Cancer héréditaire du sein et de l'ovaire", label:"Le cancer héréditaire du sein et de l'ovaire lié à BRCA1 / BRCA2 sur GeneReviews", url:"https://www.ncbi.nlm.nih.gov/books/NBK1247/"},
+    DMPK:{cond:"Dystrophie myotonique de type 1", label:"La dystrophie myotonique de type 1 sur GeneReviews", url:"https://www.ncbi.nlm.nih.gov/books/NBK1165/"}
+  };
+
+  var ITEMS=[
+    { gene:"HFE", c:"c.845G&gt;A", p:"p.Cys282Tyr", tag:"le variant courant de l'hémochromatose", condWord:"hémochromatose",
+      interp:"Remplace la cystéine par la tyrosine au codon 282 (p.Cys282Tyr). C'est le variant le plus courant associé à l'hémochromatose héréditaire, observé surtout à l'état homozygote, et il est classé <strong>pathogène</strong>.",
+      mode:"edit", ref:S(HFE), codonStart:281, expect:S(withBase(HFE,4,"A")),
+      cat:"point", sub:"missense", sig:"path",
+      detect:"révélé par le génotypage ciblé de HFE",
+      case:"Un adulte dans la quarantaine présente une fatigue persistante, des douleurs articulaires et des analyses sanguines montrant une ferritine élevée et une saturation de la transferrine élevée (surcharge en fer). Son médecin demande un génotypage ciblé de HFE.",
+      hint:"p.Cys282Tyr signifie que le codon 282 passe d'une cystéine à une tyrosine. Modifiez la seule base qui transforme le codon de la cystéine (TGC) au codon 282 en un codon de la tyrosine (TAC), puis lisez l'acide aminé.",
+      model:"Une seule lettre de l'ADN est modifiée, ce qui remplace un acide aminé dans la protéine HFE, la cystéine par la tyrosine. La protéine est quand même produite, mais ce changement l'empêche de bien fonctionner, et lorsque les deux copies le portent, le corps absorbe trop de fer.",
+      why:"Il s'agit de HFE p.Cys282Tyr (C282Y), le variant courant de l'hémochromatose héréditaire testé au CHEO. C'est une mutation ponctuelle faux-sens, et elle est récessive : une seule copie ne fait qu'un porteur, et la surcharge en fer se développe surtout lorsque les deux copies le portent.",
+      keys:[
+        {label:"un acide aminé est remplacé (la cystéine par la tyrosine)", kw:["amino acid","cyste","tyros","swap","one letter","different amino","one amino","c282y","acide amine","acide aminé","cysté","tyrosine","remplac","une lettre","un seul acide"]},
+        {label:"la protéine est quand même produite mais fonctionne différemment, donc le fer s'accumule", kw:["iron","overload","absorb","hemochromat","haemochromat","still made","works differently","builds up","stops working","fer","surcharge","hémochromat","quand même produite","fonctionne différemment","s'accumule","cesse de fonctionner","trop de fer"]},
+        {label:"c'est un changement d'une seule base (un variant ponctuel, faux-sens)", kw:["one base","single base","point","missense","one letter of dna","une base","une seule base","ponctuel","faux-sens","une lettre de l'adn"]}
+      ]},
+
+    { gene:"MYBPC3", c:"c.3000G&gt;A", p:"p.Leu1000=", tag:"un changement synonyme, bénin",
+      interp:"Un changement synonyme : le codon code toujours la leucine, donc la séquence de la protéine n'est pas modifiée (p.Leu1000=). Classé <strong>bénin</strong> et non considéré comme expliquant le tableau clinique.",
+      mode:"edit", ref:S(MYBPC3), codonStart:999, expect:S(withBase(MYBPC3,5,"A")),
+      cat:"point", sub:"silent", sig:"benign",
+      detect:"trouvé sur un panel de gènes de cardiomyopathie",
+      case:"Une personne de 32 ans souffrant d'essoufflement à l'effort présente, à l'échocardiogramme, un ventricule gauche épaissi (cardiomyopathie hypertrophique). Son médecin demande un panel de gènes de cardiomyopathie.",
+      hint:"Le changement remplace une base dans le codon 1000, mais le triplet épelle toujours le même acide aminé (la leucine). Faites le changement de base, puis vérifiez : l'acide aminé reste-t-il le même?",
+      model:"Une lettre de l'ADN a changé, mais le triplet épelle toujours le même acide aminé (la leucine), donc la protéine est exactement la même que la normale. Un changement dans l'ADN qui ne change pas la protéine.",
+      why:"C'est une mutation ponctuelle silencieuse (synonyme). La base a changé, mais le codon code toujours le même acide aminé, donc la protéine n'est pas modifiée. Sur un panel, ces variants sont habituellement classés bénins.",
+      keys:[
+        {label:"une base de l'ADN a changé", kw:["base","letter","dna","change","one base","adn","lettre","chang","une base"]},
+        {label:"mais l'acide aminé reste le même (toujours la leucine)", kw:["same amino","still leu","leucine","unchanged","same protein","synonym","silent","codes for the same","no change to the protein","acide amine","acide aminé","reste le même","même acide","synonyme","silencieux","code toujours","même protéine","toujours la leucine"]},
+        {label:"donc la protéine n'est pas modifiée et c'est bénin", kw:["protein unchanged","protein is the same","no change to the protein","no effect","benign","harmless","does not change the protein","does not explain","protéine","bénin","bénigne","pas modifiée","aucun effet","ne change pas la protéine","inoffensif","n'explique pas"]}
+      ]},
+
+    { gene:"BRCA1", c:"c.4327C&gt;T", p:"p.Arg1443*", tag:"un variant non-sens",
+      interp:"Introduit un codon-stop prématuré, changeant l'arginine en un signal d'arrêt au codon 1443 (p.Arg1443*). On prévoit qu'il tronque la protéine BRCA1; classé <strong>pathogène</strong> et compatible avec le cancer héréditaire du sein et de l'ovaire.",
+      mode:"edit", ref:S(BRCA1N), codonStart:1442, expect:S(withBase(BRCA1N,3,"T")),
+      cat:"point", sub:"nonsense", sig:"path",
+      detect:"trouvé sur un panel de gènes de cancer héréditaire",
+      case:"Une femme reçoit un diagnostic de cancer du sein à 42 ans, et sa mère et sa sœur ont toutes deux eu un cancer de l'ovaire. Son médecin demande un panel de gènes de cancer héréditaire.",
+      hint:"p.Arg1443* signifie que le codon 1443 devient un codon-stop. Modifiez la seule base qui transforme le codon de l'arginine (CGA) au codon 1443 en un codon-stop (TGA), puis lisez ce qu'il épelle maintenant.",
+      model:"Un changement d'une seule base transforme un codon d'acide aminé en un signal d'arrêt, donc la protéine BRCA1 est écourtée. Une protéine BRCA1 raccourcie ne peut pas faire son travail de réparation de l'ADN, ce qui augmente le risque, au cours de la vie, de cancer du sein et de l'ovaire.",
+      why:"C'est une mutation ponctuelle non-sens dans BRCA1 : un changement de base crée un codon-stop prématuré, tronquant la protéine. La perte d'une copie fonctionnelle de BRCA1 nuit à la réparation de l'ADN et est une cause bien établie de cancer héréditaire du sein et de l'ovaire.",
+      keys:[
+        {label:"un codon-stop prématuré est introduit", kw:["stop","premature","early stop","stop codon","cut short","ends early","terminat","codon-stop","prématuré","arrêt","signal d'arrêt","écourt","raccourc","codon d'arrêt"]},
+        {label:"la protéine BRCA1 est écourtée et ne peut pas fonctionner", kw:["short","truncat","incomplete","not full","shortened","cut short","not work","non-function","broken","brca","repair","écourt","raccourc","tronqu","incomplèt","ne peut pas fonctionner","ne fonctionne pas","brisée","réparation","répar"]},
+        {label:"donc la réparation de l'ADN est compromise et le risque de cancer augmente", kw:["dna repair","repair","cancer","risk","tumour","tumor","breast","ovarian","loss of function","réparation","répar","adn","risqu","sein","ovaire","tumeur","perte de fonction","augmente"]}
+      ]},
+
+    { gene:"BRCA1", c:"c.68_69del", p:"p.Glu23Valfs*17", tag:"le variant fondateur 185delAG",
+      interp:"Une délétion de deux nucléotides causant un décalage du cadre de lecture à partir du codon 23 (p.Glu23Valfs*17), avec un codon-stop prématuré 17 codons plus loin. On prévoit qu'elle tronque la protéine; un variant fondateur reconnu classé <strong>pathogène</strong>.",
+      mode:"edit", ref:S(BRCA1F), codonStart:22, expect:S(without(BRCA1F,[4,5])),
+      cat:"indel", sub:"frameshift", sig:"path",
+      detect:"trouvé sur un panel de gènes de cancer héréditaire",
+      case:"Une femme d'origine juive ashkénaze a une sœur et une tante qui ont eu un cancer du sein dans la quarantaine. Son médecin demande un panel de gènes de cancer héréditaire.",
+      hint:"c.68_69del retire deux bases (le A et le G du codon 23). Supprimez les deux (cliquez sur une base et appuyez sur ×), puis lisez les acides aminés qui suivent : ils sont tous lus en nouveaux groupes de trois.",
+      model:"Deux lettres de l'ADN sont supprimées, ce qui décale le cadre de lecture, donc chaque codon qui suit est lu dans les mauvais groupes de trois. Le reste de BRCA1 est brouillé et un codon-stop prématuré apparaît peu après, donc aucune protéine fonctionnelle n'est produite à partir de cette copie.",
+      why:"Il s'agit de BRCA1 c.68_69del, le variant fondateur 185delAG courant dans la population juive ashkénaze et présent sur les panels du CHEO. C'est un décalage du cadre de lecture : supprimer deux bases (pas un multiple de trois) décale le cadre de lecture, tronque BRCA1 et cause le cancer héréditaire du sein et de l'ovaire.",
+      keys:[
+        {label:"deux bases sont supprimées (un INDEL)", kw:["delet","removed","missing","lost","taken out","two bases","2 bases","indel","del","supprim","retir","deux bases","enlev","délét","manqu"]},
+        {label:"le cadre de lecture est décalé", kw:["frame","reading frame","shift","frameshift","out of frame","regroup","groups of three","re-read","everything after","cadre","cadre de lecture","décal","hors cadre","groupes de trois","tout ce qui suit"]},
+        {label:"donc BRCA1 est brouillé et écourté, augmentant le risque de cancer", kw:["scrambl","cut short","premature stop","truncat","no working","cancer","risk","brca","repair","loss of function","rest of the protein","brouill","écourt","raccourc","codon-stop prématuré","tronqu","risqu","réparation","perte de fonction","reste de la protéine","aucune protéine"]}
+      ]},
+
+    { gene:"MYH7", c:"c.2788_2790del", p:"p.Leu930del", tag:"une délétion en phase",
+      interp:"Une délétion en phase d'un seul codon, retirant la leucine à la position 930 (p.Leu930del) tout en préservant le cadre de lecture. Signalée en association avec la cardiomyopathie hypertrophique et classée <strong>pathogène</strong>.",
+      mode:"edit", ref:S(MYH7), codonStart:928, expect:S(without(MYH7,[6,7,8])),
+      cat:"indel", sub:"inframe", sig:"path",
+      detect:"trouvée sur un panel de gènes de cardiomyopathie",
+      case:"Un adolescent qui s'est effondré pendant le sport présente, à l'échocardiogramme, un épaississement septal marqué (cardiomyopathie hypertrophique), avec des antécédents familiaux de mort subite d'origine cardiaque. Son médecin demande un panel de gènes de cardiomyopathie.",
+      hint:"p.Leu930del signifie que la leucine au codon 930 est supprimée. Retirez les trois bases du codon 930. Comme les trois bases vont ensemble, les codons de part et d'autre restent lus dans le cadre.",
+      model:"Trois lettres de l'ADN, un codon entier, sont retirées, donc il manque un seul acide aminé à la protéine, mais elle est complète par ailleurs. Comme les trois bases vont ensemble, le cadre de lecture est conservé et le reste de la protéine se lit normalement, mais la protéine altérée du muscle cardiaque peut tout de même perturber le fonctionnement du muscle.",
+      why:"C'est une délétion en phase dans MYH7, un gène de la bêta-myosine présent sur le panel de cardiomyopathie du CHEO. Un multiple de trois est retiré, donc un acide aminé est perdu et le cadre est préservé. Les changements en phase dans MYH7 peuvent tout de même perturber le sarcomère et causer une cardiomyopathie hypertrophique.",
+      keys:[
+        {label:"trois bases, un codon entier, sont retirées", kw:["three bases","3 bases","one codon","a codon","whole codon","triplet","multiple of three","in threes","trois bases","un codon","codon entier","multiple de trois","par groupes de trois"]},
+        {label:"donc un acide aminé est perdu", kw:["one amino acid","lost","missing amino","deleted amino","single amino","leucine","one less","un acide aminé","acide amine","perdu","perd","manque un acide","une leucine","un de moins"]},
+        {label:"le cadre de lecture est conservé, donc le reste de la protéine est normal", kw:["frame kept","in frame","in-frame","frame preserved","rest normal","rest is fine","not shifted","frame intact","stays in frame","rest reads normally","cadre","en phase","cadre conservé","cadre préservé","reste normal","reste de la protéine","pas décalé","cadre intact","se lit normalement"]}
+      ]},
+
+    { gene:"DMPK", c:"(CTG)n", p:"expanded allele", tag:"dystrophie myotonique de type 1", condWord:"dystrophie myotonique de type 1",
+      interp:"Signalé comme une mutation complète classique.",
+      mode:"expand", repeatUnit:"CTG", refRepeats:0, startRepeats:8, sliderMax:1200, interThresh:35, pathThresh:50, maxRepeats:1200, targetKey:"classic", codonStart:1,
+      cat:"dynamic", sub:"expansion", sig:"path",
+      detect:"signalé par le test de longueur de répétition de DMPK",
+      case:"Une personne de 38 ans présente une faiblesse musculaire progressive, une myotonie (difficulté à relâcher les muscles après une contraction) et des cataractes d'apparition précoce. Un parent est aussi atteint de la même affection. En raison des antécédents familiaux, le test de répétitions CTG de DMPK a été effectué à l'adolescence, et l'allèle expansé a été classé dans la plage de la mutation complète classique.",
+      hint:"Un allèle DMPK est normal à quelques dizaines de copies CTG et devient une mutation complète au-delà d'environ 50. Pour correspondre au tableau classique de cet adulte, à début adulte, glissez-le bien au-delà de l'extrémité légère, dans la plage de la mutation complète classique.",
+      model:"Le segment CTG dans la queue non traduite de DMPK a grandi jusqu'à de nombreuses copies supplémentaires. Comme il est au-delà du codon-stop, il ne change pas du tout la protéine; le long segment répété est plutôt copié dans un ARN qui piège des protéines dont la cellule musculaire a besoin pour gérer ses autres ARN, et c'est ce qui cause la faiblesse et la myotonie. On le trouve en mesurant la longueur de la répétition, car elle est bien trop longue et répétitive pour être lue lettre par lettre.",
+      why:"C'est une mutation dynamique : une expansion de répétitions CTG dans la région non traduite de DMPK, causant la dystrophie myotonique de type 1. Elle ne change aucun acide aminé; elle agit par l'intermédiaire d'un ARN toxique qui perturbe le traitement des ARN dans le muscle. Comme une mutation complète compte des centaines à des milliers de copies identiques, on la détecte en mesurant la taille de la répétition plutôt qu'en la séquençant.",
+      keys:[
+        {label:"la répétition n'est pas traduite, donc la séquence de la protéine est inchangée", kw:["untranslated","not translated","utr","no amino acid","protein is normal","protein unchanged","same protein","does not change the protein","no change to the protein","past the stop","after the stop","normal protein","non traduite","pas traduite","aucun acide aminé","protéine normale","protéine inchangée","même protéine","ne change pas la protéine","au-delà du codon-stop","région non traduite"]},
+        {label:"la répétition expansée agit par l'intermédiaire de l'ARN (un effet ARN toxique)", kw:["rna","toxic","traps","trap","sequester","splic","processing","gain of function","cug","foci","arn","toxi","piège","séquestr","épissage","traitement","gain de fonction"]},
+        {label:"elle cause la dystrophie myotonique et se trouve en mesurant la taille de la répétition", kw:["myotonic","dystrophy","dm1","muscle","weak","myotonia","size","sizing","length","measure","how long","number of copies","count","myotoni","dystrophi","faibl","taille","longueur","mesur","combien","nombre de copies","compt","dizaines de copies"]}
+      ]}
+  ];
+
+  /* ---------- state ---------- */
+  var idx=0, work=[], reps=0, mech=[], cls={cat:null,sub:null}, tries=0, selCodon=null, pickAA=null;
+  var done=new Array(ITEMS.length).fill(false);
+  var $=function(s){return document.querySelector(s);};
+  var refStrand=$("#refStrand"), workStrand=$("#workStrand"), repeatArea=$("#repeatArea"), feedbackEl=$("#feedback");
+
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+
+  function loadItem(i){ idx=((i%ITEMS.length)+ITEMS.length)%ITEMS.length; var it=ITEMS[idx];
+    cls={cat:null,sub:null}; tries=0; selCodon=null; pickAA=null;
+    if(it.mode==="edit"){ work=it.ref.slice(); reps=0; } else if(it.mode==="mechanism"){ work=[]; reps=0; mech=(it.steps||[]).map(function(){return null;}); } else { reps=it.startRepeats; work=[]; }
+    $("#caseText").textContent=it.case;
+    $("#detect").textContent=it.detect;
+    var h=HELP[it.gene], tagHtml="";
+    if(it.tag){ tagHtml=esc(it.tag);
+      if(h){ var alink='<a class="tlink" href="'+h.url+'" target="_blank" rel="noopener">';
+        if(it.condWord && it.tag.indexOf(it.condWord)>=0){ tagHtml=tagHtml.replace(it.condWord, alink+it.condWord+' <span aria-hidden="true">&#8599;</span></a>'); }
+        else { tagHtml=tagHtml+' &middot; '+alink+esc(h.cond)+' <span aria-hidden="true">&#8599;</span></a>'; }
+      }
+    }
+    $("#nomen").innerHTML='<span class="vcall"><span class="gene">'+it.gene+'</span> '+it.c+' ('+it.p+')</span>'+(it.tag?'<span class="vtag"> &middot; '+tagHtml+'</span>':'');
+    // the standalone Result line is folded into the What the report says box below
+    var resEl=document.querySelector(".result"); if(resEl) resEl.style.display="none";
+    {
+      $("#interp").className="interp";
+      var lead = '<strong>'+esc(it.gene)+' '+it.c+' ('+it.p+')</strong>' + (it.tag ? ', '+tagHtml+'.' : '.');
+      var body = (it.interp||'').replace(/<\/?strong>/g,'');
+      $("#interp").innerHTML = '<span class="ilab">Ce que dit le rapport</span>' + '<p>'+lead+'</p>' + (body?'<p>'+body+'</p>':'');
+    }
+    clearFeedback(); buildSubs(); syncClassify(); renderCasebar(); updateNav(); render();
+  }
+
+  /* ---------- render sequences ---------- */
+  function makeCodonEl(triplet, num, opts){ opts=opts||{};
+    var col=document.createElement("div"); col.className="codon";
+    if(opts.after) col.classList.add("after");
+    var bs=document.createElement("div"); bs.className="bases";
+    triplet.forEach(function(b){ var d=document.createElement("div"); d.className="base "+b; d.textContent=b; bs.appendChild(d); });
+    col.appendChild(bs);
+    if(opts.showPos){ var pr=document.createElement("div"); pr.className="cpos"; var start=3*num-2;
+      triplet.forEach(function(b,k){ var d=document.createElement("div"); var pos=start+k;
+        d.className="cp"+(opts.posSet&&opts.posSet.has(pos)?" ref":""); d.textContent=pos; pr.appendChild(d); });
+      col.appendChild(pr); }
+    var aa=document.createElement("div"); aa.className="caa"+(opts.aaClass?(" "+opts.aaClass):"");
+    aa.innerHTML=opts.aaText ? esc(opts.aaText)+' <span class="aanum">('+num+')</span>' : ""; col.appendChild(aa);
+    return col;
+  }
+
+  function renderStrand(container, arr, editable, refArr, codonStart, posSet){
+    container.innerHTML="";
+    var codons=codonsOf(arr); var refCod=refArr?codonsOf(refArr):null;
+    var stopped=false;
+    var baseIndex=0;
+    codons.forEach(function(tri,ci){
+      var num=(codonStart||1)+ci;
+      var aaText, aaClass="", letter=null;
+      if(stopped){ aaText=""; }
+      else {
+        var a=aaOf(tri);
+        if(a==="*"){ aaText="Stop"; aaClass="stop"; stopped=true; letter="*"; }
+        else if(a==="?"){ aaText=""; }
+        else { aaText=AA3[a]; letter=a; }
+        if(!stopped && refCod && refCod[ci]){ var ra=aaOf(refCod[ci]); if(ra!==a) aaClass=(aaClass?aaClass+" ":"")+"changed"; }
+        else if(!refCod){ /* reference row: no highlight */ }
+      }
+      var col=makeCodonEl(tri, num, {aaText:aaText, aaClass:aaClass, after:stopped&&aaText==="", showPos:!editable, posSet:posSet});
+      // clicking the codon box (or its number or amino acid) lights up its amino acid in the reference table
+      if(letter){ col.classList.add("clk");
+        if(editable && pickAA===null && selCodon===ci) col.classList.add("sel");
+        (function(ci2, let2, el){ el.addEventListener("click", function(){ if(suppressClick) return; highlightCodon(ci2, editable, let2, el); }); })(ci, letter, col); }
+      // each base is a drag handle: drag a tray base on to swap, or drag this base to Delete; tap still highlights
+      if(editable){
+        col.querySelectorAll(".base").forEach(function(bel,k){
+          var gi=baseIndex+k; bel.dataset.gi=gi;
+          bel.addEventListener("pointerdown",function(e){ startDrag(e,{kind:"seq",base:bel.textContent,gi:gi,anchor:bel}); });
+          bel.addEventListener("click",function(e){ e.stopPropagation(); });
+        });
+      }
+      baseIndex+=tri.length;
+      container.appendChild(col);
+    });
+  }
+  function makeSlot(insertAt){ var s=document.createElement("div"); s.className="slot"; s.dataset.at=insertAt;
+    s.addEventListener("click",function(e){ if(suppressClick) return; e.stopPropagation(); openBasePop(s, insertAt, true); }); return s; }
+
+  function cPositions(cstr){ var s=new Set(); if(!cstr) return s;
+    var m=String(cstr).replace(/&gt;/g,">").match(/c\.(\d+)(?:_(\d+))?/);
+    if(m){ var a=+m[1], b=m[2]?+m[2]:a; for(var i=a;i<=b;i++) s.add(i); }
+    return s; }
+  var HOWTO_EDIT='<h3>Comment le construire</h3>'
+    +'<div class="instr"><span class="ic">1</span><div><b>Cliquez sur une base</b> pour la modifier ou la supprimer.</div></div>'
+    +'<div class="instr"><span class="ic">&#10003;</span><div><b>Classez et expliquez.</b> Sélectionnez le type de variant et le sous-type, puis expliquez-le en mots simples.</div></div>'
+    +'<div class="legend">L\'acide aminé sous chaque triplet se met à jour à mesure que vous modifiez la séquence.</div>';
+  var HOWTO_EXPAND='<h3>Instructions</h3>'
+    +'<div class="hnote">Ce cas fonctionne un peu différemment des autres.</div>'
+    +'<div class="instr"><span class="ic">1</span><div><b>Agrandissez-la.</b> Glissez le curseur pour ajouter des copies CTG, au-delà du seuil de la maladie et dans la plage de la mutation complète classique.</div></div>'
+    +'<div class="instr"><span class="ic">&#10003;</span><div><b>Classez et expliquez.</b> Sélectionnez le type de variant et le sous-type, puis expliquez-le en mots simples.</div></div>'
+    +'<div class="legend">L\'échelle montre où se situe chaque taille. Des répétitions plus grandes signifient une maladie plus précoce et plus grave : c\'est l\'anticipation.</div>';
+  var HOWTO_MECH='<h3>Comment faire</h3>'
+    +'<div class="instr"><span class="ic">1</span><div><b>Lisez le rapport et la carte du gène.</b> La répétition expansée se trouve dans la région non traduite, donc elle ne change aucun codon.</div></div>'
+    +'<div class="instr"><span class="ic">2</span><div><b>Raisonnez.</b> Répondez aux trois questions : l\'effet sur la protéine, d\'où vient la maladie, et pourquoi on en mesure la taille plutôt que de la séquencer.</div></div>'
+    +'<div class="instr"><span class="ic">&#10003;</span><div><b>Classez et expliquez.</b> Sélectionnez le type de variant et le sous-type, puis expliquez-le en mots simples.</div></div>'
+    +'<div class="legend">Ce cas porte sur la conséquence, pas sur une modification de séquence.</div>';
+  function render(){ var it=ITEMS[idx]; var rc=$("#refCard"); var tray=$("#tray");
+    var bl=$("#buildLabel"), bs=$("#buildSub"); var ht=$("#howto");
+    if(ht) ht.innerHTML = it.mode==="mechanism" ? HOWTO_MECH : ((it.mode==="expand") ? HOWTO_EXPAND : HOWTO_EDIT);
+    if(it.mode==="edit"){
+      repeatArea.style.display="none"; repeatArea.innerHTML="";
+      refStrand.parentElement.style.display=""; workStrand.parentElement.style.display="";
+      if(tray) tray.style.display="flex";
+      if(bl) bl.textContent="Construire le changement"; if(bs) bs.textContent="Faites correspondre votre séquence au résultat ci-dessus.";
+      renderStrand(refStrand, it.ref, false, null, it.codonStart, cPositions(it.c));
+      renderStrand(workStrand, work, true, it.ref, it.codonStart);
+      $("#resetBtn").style.display="";
+      if(rc) rc.style.display=""; markRefTable();
+    } else if(it.mode==="mechanism"){
+      refStrand.parentElement.style.display="none"; workStrand.parentElement.style.display="none";
+      refStrand.innerHTML=""; workStrand.innerHTML="";
+      if(tray) tray.style.display="none";
+      $("#resetBtn").style.display="none";
+      if(bl) bl.textContent="Déterminez ce qu'il fait"; if(bs) bs.textContent="Ce variant ne change aucun codon. Utilisez le rapport pour raisonner sur son effet.";
+      repeatArea.style.display="";
+      if(rc) rc.style.display="none";
+      renderMechanism(it);
+    } else {
+      // expand mode
+      refStrand.parentElement.style.display="none"; workStrand.parentElement.style.display="none";
+      refStrand.innerHTML=""; workStrand.innerHTML="";
+      if(tray) tray.style.display="none";
+      $("#resetBtn").style.display="none";
+      if(bl) bl.textContent="Agrandissez la répétition au-delà du seuil"; if(bs) bs.textContent="Glissez le curseur pour agrandir la répétition CTG. Regardez-la passer de la normale à une mutation complète, et placez-la dans la plage classique que décrit le rapport.";
+      repeatArea.style.display="";
+      if(rc) rc.style.display="none";
+      renderRepeat(it);
+    }
+  }
+  function buildRefTable(){ var tb=$("#reftbl"); if(!tb) return;
+    var order=Object.keys(AAFULL).sort(function(a,b){ return AA3[a]<AA3[b]?-1:1; }); order.push("*");
+    var html=""; order.forEach(function(L){ var isStop=L==="*", isStart=L==="M";
+      var ab=isStop?"Stop":AA3[L], nm=isStop?"termine la protéine":AAFULL[L], st=isStart?" (départ)":"";
+      html+="<tr"+(isStop?" class='stop'":"")+" data-aa='"+L+"'><td><span class='ab'>"+ab+"</span> <span class='nm'>"+nm+st+"</span></td><td class='cod'>"+codonsForAA(L).join(" ")+"</td></tr>"; });
+    tb.innerHTML=html; }
+  function markRefTable(){ var tb=$("#reftbl"); if(!tb) return; var pick=pickAA;
+    if(pick===null && selCodon!==null){ var cod=work.slice(selCodon*3, selCodon*3+3); if(cod.length===3) pick=CODON[cod.join("")]; }
+    [].forEach.call(tb.querySelectorAll("tr[data-aa]"), function(tr){ tr.classList.toggle("pick", pick!==null && tr.getAttribute("data-aa")===pick); }); }
+  function setSelRing(el){ [].forEach.call(document.querySelectorAll("#workStrand .codon.sel, #refStrand .codon.sel"), function(e){ e.classList.remove("sel"); }); if(el) el.classList.add("sel"); }
+  function highlightCodon(ci, editable, letter, el){ if(editable){ selCodon=ci; pickAA=null; } else { pickAA=letter; selCodon=null; } setSelRing(el); markRefTable(); }
+
+  function repState(it,n){ if(n>=it.pathThresh) return ["path",it.pathLabel]; if(n>=it.interThresh) return ["inter",it.interLabel]; return ["norm","Plage normale"]; }
+  function repTileHTML(U){ var b=U.split("").map(function(x){ return '<div class="base '+x+'">'+x+'</div>'; }).join("");
+    return '<div class="repcodon"><div class="bases">'+b+'</div><div class="caa">Leu</div></div>'; }
+  function drawRepStrip(it){ var host=$("#repStrip"); if(!host) return; var U=it.repeatUnit; var n=reps;
+    if(!n){ host.innerHTML='<div class="repstrip-empty">Glissez le curseur pour agrandir la répétition ('+U+').</div>'; return; }
+    var maxShow=9, show=Math.min(n,maxShow), html='<div class="section-label" style="margin:0 0 5px">La répétition ('+U+'), déployée</div><div class="repstrip-row"><span class="repbracket">[</span>';
+    for(var i=0;i<show;i++) html+=repTileHTML(U);
+    if(n>maxShow) html+='<span class="repdots">&hellip;</span>';
+    html+='<span class="repbracket">]<span class="repsub">'+n+'</span></span></div>'
+      +'<div class="repstrip-cap">Chaque triplet ('+U+') se lit comme la leucine (Leu), mais cette répétition se trouve dans la queue non traduite de DMPK, donc les copies ne sont pas ajoutées à la protéine.</div>';
+    host.innerHTML=html; }
+  var REPBANDS=[
+    {key:"norm",    name:"Normale",          range:"5 à 34 CTG",        eff:"Non atteint. La répétition est stable lorsqu'elle est transmise à un enfant.",                                        bar:"#2e7d4f", bg:"#e8f5ee", lo:0,    hi:34},
+    {key:"pre",     name:"Prémutation",     range:"35 à 49 CTG",       eff:"Un porteur non atteint, mais l'allèle est instable : il peut s'étendre en mutation complète à la génération suivante.", bar:"#c6551c", bg:"#fdf3ec", lo:35,   hi:49},
+    {key:"mild",    name:"Mutation complète, légère",     range:"environ 50 à 150 CTG",   eff:"Dystrophie myotonique de type 1, extrémité légère : cataractes et myotonie légère, souvent avec une espérance de vie normale.",       bar:"#d9663a", bg:"#fbeee6", lo:50,   hi:150},
+    {key:"classic", name:"Mutation complète, classique",  range:"environ 150 à 1000 CTG", eff:"Début à l'âge adulte : myotonie, faiblesse musculaire progressive et troubles de la conduction cardiaque.",                  bar:"#c0392b", bg:"#fdecea", lo:151,  hi:1000},
+    {key:"cong",    name:"Mutation complète, congénitale", range:"plus de 1000 CTG",       eff:"Grave et présente dès la naissance, et presque toujours héritée de la mère.",                          bar:"#8e2018", bg:"#f7dad6", lo:1001, hi:1e12}
+  ];
+  function bandFor(n){ for(var i=0;i<REPBANDS.length;i++){ var b=REPBANDS[i]; if(n>=b.lo && n<=b.hi) return b; } return REPBANDS[0]; }
+  var BANDORDER={norm:0,pre:1,mild:2,classic:3,cong:4};
+  function drawResult(it){ var host=$("#repReport"); if(!host) return; var n=reps;
+    if(!n){ host.innerHTML=""; return; }
+    var b=bandFor(n), tgt=it.targetKey||"classic", ok=(b.key===tgt);
+    var cls = ok ? "rr-path" : (b.key==="norm"||b.key==="pre" ? "rr-norm" : "rr-inter");
+    var dir = BANDORDER[b.key] < BANDORDER[tgt] ? "plus grande" : "plus petite";
+    var note;
+    if(ok) note="Cela correspond au rapport : une mutation complète de la plage classique, la taille qui correspond au tableau de cet adulte, fait de faiblesse progressive et de myotonie.";
+    else if(b.key==="norm") note="Un allèle de longueur normale n'est pas du tout une mutation. Le rapport nomme une mutation complète, alors rendez la répétition "+dir+".";
+    else if(b.key==="pre") note="Une prémutation est un allèle de porteur instable, pas une mutation complète. Rendez la répétition "+dir+" pour atteindre la plage classique.";
+    else if(b.key==="mild") note="C'est une mutation complète, mais à l'extrémité légère. Le rapport nomme la plage classique, alors rendez la répétition "+dir+".";
+    else note="C'est une mutation complète très grande, de la plage congénitale. Le rapport nomme la plage classique, alors rendez la répétition "+dir+".";
+    host.innerHTML='<div class="rr '+cls+'"><span class="rr-lab">La répétition que vous avez entrée</span><b>(CTG)'+n+' se situe dans '+b.name+(ok?' <span class="rr-check">&#10003;</span>':'')+'</b><p>'+note+'</p></div>'; }
+  function drawRepRef(it){ var host=$("#repRef"); if(!host) return; var n=reps;
+    var html='<div class="repref-title">Pour référence : la répétition (CTG) de DMPK selon la taille</div>'
+      +'<div class="repref-sub">Des répétitions plus grandes, des effets plus grands : c\'est l\'anticipation. Votre longueur de répétition est indiquée.</div>';
+    REPBANDS.forEach(function(b){ var on = n>=b.lo && n<=b.hi, isc=b.key==="classic";
+      html+='<div class="repband'+(on?" on":"")+'" style="background:'+b.bg+'">'
+        +'<span class="bar" style="background:'+b.bar+'"></span>'
+        +'<div class="repband-head">'+(on?'<span class="repband-you">Vous avez entré : (CTG)'+n+(isc?' &#10003;':'')+'</span>':'')
+        +'<span class="bn" style="color:'+b.bar+'">'+b.name+'</span> <span class="br">'+b.range+'</span></div>'
+        +'<div class="repband-eff">'+b.eff+'</div></div>';
+    });
+    host.innerHTML=html; }
+  function drawExpand(it){ drawRepStrip(it); drawResult(it);
+    if(bandFor(reps).key==="classic") drawRepRef(it); else $("#repRef").innerHTML=""; }
+  function renderRepeat(it){ var U=it.repeatUnit; var maxN=it.sliderMax||1200, SMAX=1000;
+    function nFromPos(p){ return Math.round(Math.pow(Math.max(0,Math.min(SMAX,p))/SMAX,2)*maxN); }
+    function posFromN(n){ return Math.round(Math.sqrt(Math.max(0,Math.min(maxN,n))/maxN)*SMAX); }
+    function pctN(n){ return (posFromN(n)/SMAX*100).toFixed(1); }
+    var grad='linear-gradient(to right,'
+      +'#2e7d4f 0%,#2e7d4f '+pctN(34)+'%,'
+      +'#c6551c '+pctN(34)+'%,#c6551c '+pctN(49)+'%,'
+      +'#d9663a '+pctN(49)+'%,#d9663a '+pctN(150)+'%,'
+      +'#c0392b '+pctN(150)+'%,#c0392b '+pctN(1000)+'%,'
+      +'#8e2018 '+pctN(1000)+'%,#8e2018 100%)';
+    var thr=pctN(50);
+    repeatArea.innerHTML='<div class="repeatbox">'
+      +'<div class="seqlab you" style="margin-bottom:12px">Votre tâche : glissez pour agrandir la répétition ('+U+') au-delà du seuil, dans la plage de la mutation complète classique.</div>'
+      +'<div class="sliderwrap">'
+        +'<div class="slidertrack" style="background:'+grad+'"></div>'
+        +'<div class="thrmark" style="left:'+thr+'%"></div>'
+        +'<input id="nSlider" class="nslider" type="range" min="0" max="'+SMAX+'" step="1" value="'+posFromN(reps)+'" aria-label="longueur de la répétition CTG">'
+      +'</div>'
+      +'<div class="slider-scale"><span>0</span><span class="thrlbl" style="left:'+thr+'%">seuil de la maladie, ~50</span><span>'+maxN+'</span></div>'
+      +'<div class="nline">'+it.gene+' ('+U+') &times; <span class="nbig" id="nBig">'+reps+'</span> <span id="nBand" class="nband"></span></div>'
+      +'<div id="repStrip" class="repstrip"></div>'
+      +'<div id="repReport"></div>'
+      +'<div id="repRef" class="repref"></div>'
+      +'</div>';
+    var sl=$("#nSlider");
+    function paint(){ var b=bandFor(reps);
+      $("#nBig").textContent=reps;
+      $("#nBand").innerHTML='<span style="color:'+b.bar+'">'+b.name+(b.key==="classic"?' &#10003;':'')+'</span>';
+      drawRepStrip(it); drawResult(it); drawRepRef(it); }
+    sl.oninput=function(){ reps=nFromPos(parseInt(sl.value,10)||0); clearFeedback(); paint(); };
+    paint();
+  }
+  function setReps(n){ var it=ITEMS[idx]; reps=Math.max(it.refRepeats, Math.min(it.maxRepeats, n)); clearFeedback(); render(); }
+
+  /* ---------- mechanism (case 6): reason, do not edit a sequence ---------- */
+  function paintStep(it,si){ var st=it.steps[si]; var sel=mech[si];
+    var wrap=repeatArea.querySelector('.mstep[data-si="'+si+'"]'); if(!wrap) return;
+    wrap.querySelectorAll(".mopt").forEach(function(b){ var oi=+b.dataset.oi; b.classList.remove("right","wrong");
+      b.setAttribute("aria-pressed", sel===oi?"true":"false");
+      if(sel===oi) b.classList.add(st.options[oi].correct?"right":"wrong"); });
+    var msg=wrap.querySelector(".mmsg");
+    if(sel==null){ msg.innerHTML=""; return; }
+    var op=st.options[sel];
+    msg.innerHTML = op.correct ? '<span class="mok">'+st.right+'</span>' : '<span class="mno">'+st.wrong+'</span>'; }
+  function renderMechanism(it){ var m=it.map||{};
+    var html='<div class="genemap"><div class="gm coding"><div class="gmt">Séquence codante</div><div class="gmd">'+m.coding+'</div></div>'
+      +'<div class="gm utr"><div class="gmt">Région 3&#39; non traduite</div><div class="gmd">'+m.utr+'</div><div class="gmrep">(CTG)<sub>n</sub> expansée</div></div></div>';
+    it.steps.forEach(function(st,si){
+      html+='<div class="mstep" data-si="'+si+'"><p class="mq"><b>'+(si+1)+'.</b> '+st.q+'</p><div class="mopts">';
+      st.options.forEach(function(op,oi){ html+='<button type="button" class="mopt" data-si="'+si+'" data-oi="'+oi+'" aria-pressed="false">'+esc(op.label)+'</button>'; });
+      html+='</div><div class="mmsg"></div></div>';
+    });
+    repeatArea.innerHTML=html;
+    repeatArea.querySelectorAll(".mopt").forEach(function(btn){ btn.addEventListener("click",function(){ var si=+btn.dataset.si, oi=+btn.dataset.oi; mech[si]=oi; clearFeedback(); paintStep(it,si); }); });
+    it.steps.forEach(function(st,si){ if(mech[si]!=null) paintStep(it,si); }); }
+
+  /* ---------- drag and drop ---------- */
+  var drag=null, hoverEl=null, suppressClick=false;
+  /* click a base or gap to change it without dragging */
+  var pop=null;
+  function closePop(){ if(pop){ pop.remove(); pop=null; document.removeEventListener("click",closePop); window.removeEventListener("scroll",closePop,true); } }
+  function openBasePop(anchor, gi, isInsert){ closePop();
+    if(!isInsert){ selCodon=Math.floor(gi/3); pickAA=null; var cel=anchor.closest?anchor.closest(".codon"):null; if(cel) setSelRing(cel); markRefTable(); }
+    pop=document.createElement("div"); pop.className="pop";
+    ["A","T","C","G"].forEach(function(b){ var btn=document.createElement("button"); btn.className="p"+b; btn.textContent=b;
+      btn.addEventListener("click",function(e){ e.stopPropagation(); if(isInsert) insBase(gi,b); else setBase(gi,b); closePop(); }); pop.appendChild(btn); });
+    if(!isInsert){ var x=document.createElement("button"); x.className="px"; x.textContent="×"; x.title="delete this base";
+      x.addEventListener("click",function(e){ e.stopPropagation(); delBase(gi); closePop(); }); pop.appendChild(x); }
+    document.body.appendChild(pop);
+    var r=anchor.getBoundingClientRect();
+    var left=r.left+r.width/2-pop.offsetWidth/2; left=Math.max(6,Math.min(left,document.documentElement.clientWidth-pop.offsetWidth-6));
+    var top=r.bottom+6; if(top+pop.offsetHeight>window.innerHeight-6) top=r.top-pop.offsetHeight-6;
+    pop.style.left=left+"px"; pop.style.top=top+"px";
+    setTimeout(function(){ document.addEventListener("click",closePop); window.addEventListener("scroll",closePop,true); },0);
+  }
+  function enableTray(){
+    [].forEach.call(document.querySelectorAll("#tray .traybase"), function(el){
+      el.addEventListener("pointerdown", function(e){ e.preventDefault(); startDrag(e,{kind:"tray",base:el.dataset.base},el); });
+    });
+  }
+  function startDrag(e, meta){
+    if(e.pointerType==="mouse" && e.button!==0) return;
+    if(drag) cleanupDrag();
+    drag={kind:meta.kind, base:meta.base, gi:(meta.gi==null?-1:meta.gi), moved:false, x0:e.clientX, y0:e.clientY, ghost:null, anchor:meta.anchor||null};
+    window.addEventListener("pointermove", onDragMove);
+    window.addEventListener("pointerup", onDragUp);
+    window.addEventListener("pointercancel", onDragUp);
+  }
+  function onDragMove(e){ if(!drag) return;
+    if(!drag.moved){
+      if(Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0) < 6) return;
+      drag.moved=true;
+      drag.ghost=document.createElement("div"); drag.ghost.className="dragghost "+drag.base; drag.ghost.textContent=drag.base;
+      document.body.appendChild(drag.ghost); document.body.classList.add("noselect");
+    }
+    drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; drag.ghost.style.transform="translate(-50%,-50%)";
+    hoverTargets(e.clientX, e.clientY);
+  }
+  function onDragUp(e){ if(!drag) return; var d=drag;
+    if(d.moved){ var t=targetAt(e.clientX, e.clientY);
+      if(d.kind==="tray"){
+        if(t && t.type==="base") setBase(t.gi, d.base);
+      } else if(t && t.type==="trash"){ delBase(d.gi); }
+      suppressClick=true; setTimeout(function(){ suppressClick=false; }, 30);
+      cleanupDrag();
+    } else {
+      // a tap with no drag: open the change/delete popup on the base (works even where a synthesized click does not fire)
+      cleanupDrag();
+      if(d.kind==="seq" && d.anchor && document.body.contains(d.anchor)) openBasePop(d.anchor, d.gi, false);
+    }
+  }
+  function cleanupDrag(){
+    window.removeEventListener("pointermove", onDragMove);
+    window.removeEventListener("pointerup", onDragUp);
+    window.removeEventListener("pointercancel", onDragUp);
+    if(drag && drag.ghost) drag.ghost.remove();
+    document.body.classList.remove("noselect");
+    clearHover(); drag=null;
+  }
+  function targetAt(x,y){ var els=document.elementsFromPoint(x,y);
+    for(var i=0;i<els.length;i++){ var el=els[i]; if(!el.classList) continue;
+      var tr=el.closest?el.closest("#trash"):null; if(tr) return {type:"trash", el:tr};
+      if(el.classList.contains("slot") && workStrand.contains(el)) return {type:"slot", el:el, at:+el.dataset.at};
+      if(el.classList.contains("base") && workStrand.contains(el) && el.dataset.gi!=null) return {type:"base", el:el, gi:+el.dataset.gi};
+    }
+    return null;
+  }
+  function hoverTargets(x,y){ clearHover(); if(!drag) return; var t=targetAt(x,y); if(!t) return;
+    if(drag.kind==="tray"){ if(t.type==="base"||t.type==="slot"){ t.el.classList.add("drop-hover"); hoverEl=t.el; } }
+    else if(t.type==="trash"){ t.el.classList.add("hot"); hoverEl=t.el; }
+  }
+  function clearHover(){ if(hoverEl){ hoverEl.classList.remove("drop-hover"); hoverEl.classList.remove("hot"); hoverEl=null; } }
+  function setBase(gi,b){ if(gi<0||gi>=work.length) return; work[gi]=b; clearFeedback(); render(); }
+  function insBase(at,b){ at=Math.max(0,Math.min(work.length,at)); work.splice(at,0,b); clearFeedback(); render(); }
+  function delBase(gi){ if(gi<0||gi>=work.length) return; work.splice(gi,1); clearFeedback(); render(); }
+  $("#resetBtn").onclick=function(){ var it=ITEMS[idx]; if(it.mode==="edit"){ work=it.ref.slice(); } clearFeedback(); render(); };
+
+  /* ---------- classify ---------- */
+  function buildSubs(){ var it=ITEMS[idx]; var host=$("#subOpts"); host.innerHTML="";
+    (SUBS[cls.cat]||[]).forEach(function(s){ var b=document.createElement("button"); b.className="opt"; b.dataset.sub=s[0]; b.setAttribute("aria-pressed","false"); b.textContent=s[1]; host.appendChild(b); });
+    $("#subGroup").classList.toggle("dim", !cls.cat);
+    $("#subLbl").textContent = cls.cat ? "Puis le type précis" : "Choisissez d'abord le type";
+  }
+  $("#catOpts").addEventListener("click",function(e){ var b=e.target.closest(".opt"); if(!b) return;
+    cls.cat = cls.cat===b.dataset.cat? null : b.dataset.cat; cls.sub=null; buildSubs(); syncClassify(); });
+  $("#subOpts").addEventListener("click",function(e){ var b=e.target.closest(".opt"); if(!b) return;
+    cls.sub = cls.sub===b.dataset.sub? null : b.dataset.sub; syncClassify(); });
+  function syncClassify(){ document.querySelectorAll("#catOpts .opt").forEach(function(o){ o.setAttribute("aria-pressed", cls.cat===o.dataset.cat); });
+    document.querySelectorAll("#subOpts .opt").forEach(function(o){ o.setAttribute("aria-pressed", cls.sub===o.dataset.sub); }); }
+
+  /* ---------- check ---------- */
+  function matchesBuild(){ var it=ITEMS[idx];
+    if(it.mode==="edit") return work.join("")===it.expect.join("");
+    if(it.mode==="mechanism") return it.steps.every(function(st,si){ return mech[si]!=null && st.options[mech[si]].correct; });
+    return bandFor(reps).key===(it.targetKey||"classic"); }
+  function clearFeedback(){ feedbackEl.innerHTML=""; }
+
+  function buildFeedback(){ var it=ITEMS[idx];
+    if(it.mode==="mechanism"){
+      if(it.steps.some(function(st,si){return mech[si]==null;})) return "Répondez aux trois questions ci-dessus : l'effet sur la protéine, d'où vient la maladie, et pourquoi on en mesure la taille plutôt que de la séquencer.";
+      return "Une de vos réponses ci-dessus n'est pas encore juste. Regardez celle marquée en rouge et réessayez.";
+    }
+    if(it.mode==="expand"){
+      var n=reps; if(!n) return "Glissez le curseur pour agrandir la répétition CTG jusqu'à une mutation complète.";
+      var b=bandFor(n); if(b.key==="classic") return null;
+      if(b.key==="norm") return "(CTG)<span class='attempt-nomen'>"+n+"</span> est un allèle de longueur normale, pas une mutation. Le tableau de ce patient indique une mutation complète, alors glissez-le vers une plus grande valeur.";
+      if(b.key==="pre") return "(CTG)<span class='attempt-nomen'>"+n+"</span> est une prémutation, pas une mutation complète. Glissez-le plus loin, au-delà du seuil, dans la plage de la mutation complète.";
+      if(b.key==="mild") return "(CTG)<span class='attempt-nomen'>"+n+"</span> est une mutation complète, mais à l'extrémité légère. Ce patient a le tableau classique de l'adulte, alors glissez-le vers une plus grande valeur, dans la plage classique.";
+      return "(CTG)<span class='attempt-nomen'>"+n+"</span> est une mutation complète très grande, de la plage congénitale (grave dès la naissance). Cet adulte l'a développée plus tard, avec un parent atteint, alors glissez-le vers une plus petite valeur, dans la plage classique.";
+    }
+    if(work.join("")===it.ref.join("")) return "Vous n'avez pas encore modifié l'ADN. Le résultat demande <span class='attempt-nomen'>"+it.c+" ("+it.p+")</span>.";
+    // find first differing codon
+    var wc=codonsOf(work), rc=codonsOf(it.ref), n=Math.min(wc.length,rc.length), diffC=-1;
+    for(var i=0;i<n;i++){ if(wc[i].join("")!==rc[i].join("")){ diffC=i; break; } }
+    if(diffC<0 && wc.length!==rc.length) diffC=n;
+    var where = diffC>=0 ? "Regardez de nouveau autour du codon "+((it.codonStart||1)+diffC)+"." : "";
+    return "Ce n'est pas encore le changement décrit. L'objectif est <span class='attempt-nomen'>"+it.c+" ("+it.p+")</span>. "+where+" Utilisez Réinitialiser à la référence si vous voulez recommencer.";
+  }
+
+  function labelFor(cat,sub){ var cn={point:"Ponctuel",indel:"INDEL",dynamic:"Dynamique"}[cat]||cat;
+    var sn=""; (SUBS[cat]||[]).forEach(function(s){ if(s[0]===sub) sn=s[1]; }); return cn+", "+sn; }
+
+  function helpLink(it){ var h=HELP[it.gene]; return h? '<p class="morelink">En savoir plus : <a href="'+h.url+'" target="_blank" rel="noopener">'+h.label+' &#8599;</a></p>' : ''; }
+  function panelHTML(it){ var more=helpLink(it);
+    if(it.sig==="benign") return '<div class="benign-panel"><h4>Pourquoi c\'est important</h4><p class="read">'+it.why+'</p>'+more+'</div>';
+    return '<div class="path-panel"><h4>Pourquoi c\'est important</h4><p class="read">'+it.why+'</p>'+more+'</div>'; }
+
+  function showExplain(){ var it=ITEMS[idx];
+    var built = it.mode==="expand" ? ('Vous avez réglé '+it.gene+' '+it.c+' à (CTG)'+reps+', une mutation complète classique')
+      : it.mode==="mechanism" ? ('Vous avez raisonné sur '+it.gene+' '+it.c+', une expansion de répétitions CTG non traduite')
+      : ('Vous avez construit '+it.gene+' '+it.c+' ('+it.p+')');
+    feedbackEl.innerHTML='<div class="fb ok"><h3>'+built+'</h3>'
+      +'<p class="cline match">Classé correctement : '+labelFor(it.cat,it.sub)+'.</p></div>'
+      +'<div class="fb info explain"><h3 style="color:var(--plum-deep)">Maintenant, expliquez-le au patient</h3>'
+      +'<p class="read">En mots simples, dites au patient ce que le changement fait au gène ou à la protéine et ce que cela signifie pour lui.</p>'
+      +'<textarea id="patientText" placeholder="Tapez votre explication ici..."></textarea>'
+      +'<div class="toolbar"><button class="btn primary" id="shareBtn">Vérifier mon explication</button></div>'
+      +'<div id="explainMsg"></div></div>';
+    var ideas=it.keys||[]; var need=Math.min(2, ideas.length||2); var etries=0;
+    function complete(){ done[idx]=true; renderCasebar(); updateNav();
+      feedbackEl.insertAdjacentHTML("beforeend",
+        '<div class="modelq"><b>Une façon de le dire</b>'+it.model+'</div>'+panelHTML(it)
+        +'<p class="read" style="color:var(--muted);margin-top:8px">Cela termine ce cas. Appuyez sur Suivant quand vous êtes prêt.</p>');
+      feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"});
+    }
+    $("#shareBtn").onclick=function(){ if(done[idx]) return; var t=($("#patientText").value||"").trim(); var msg=$("#explainMsg");
+      var low=t.toLowerCase(); var hits=ideas.map(function(k){ return k.kw.some(function(w){ return low.indexOf(w)>=0; }); });
+      var covered=hits.filter(Boolean).length;
+      var words=t?t.split(/\s+/).filter(Boolean).length:0;
+      if(words<2 && covered===0){ msg.innerHTML='<p class="read" style="color:var(--muted)">Écrivez d\'abord votre explication dans la case, puis vérifiez-la.</p>'; return; }
+      etries++;
+      if(covered>=need){
+        var missedL=ideas.filter(function(k,i){return !hits[i];}).map(function(k){return k.label;});
+        msg.innerHTML = missedL.length ? '<p class="read" style="color:var(--good)"><strong>Bien, cela résume bien.</strong> Vous pourriez aussi mentionner : '+missedL.join("; ")+'.</p>' : '<p class="read" style="color:var(--good)"><strong>Bien expliqué.</strong> Vous avez couvert les idées clés.</p>';
+        complete();
+      } else if(etries===1){
+        msg.innerHTML='<p class="read"><strong>Bon début.</strong> Pour le finir pour le patient, couvrez tout le tableau : ce qu\'est le changement, ce qu\'il fait au gène ou à la protéine, et ce que cela signifie pour sa santé. Réessayez, puis vérifiez de nouveau.</p>';
+      } else {
+        msg.innerHTML='<p class="read">Pas tout à fait encore. Regardez une façon de le dire, juste en dessous, et demandez à un tuteur ou à quelqu\'un d\'autre dans la classe comment il le dirait. Puis révisez et vérifiez de nouveau si vous le souhaitez.</p>';
+        feedbackEl.querySelector(".explain").insertAdjacentHTML("afterend",'<div class="modelq" id="earlyModel"><b>Une façon de le dire</b>'+it.model+'</div>');
+      }
+    };
+    feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+
+  $("#checkBtn").onclick=function(){ var it=ITEMS[idx];
+    if(!matchesBuild()){ feedbackEl.innerHTML='<div class="fb no"><h3>Not a match yet</h3><p class="read">'+buildFeedback()+'</p></div>';
+      done[idx]=false; updateNav(); feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"}); return; }
+    var full = cls.cat && cls.sub;
+    var correct = cls.cat===it.cat && cls.sub===it.sub;
+    var mech0 = it.mode==="mechanism";
+    var head0 = mech0 ? "Nice reasoning" : "You built the change";
+    var rightNote = mech0 ? "Your answers are right." : "The DNA is right.";
+    if(!full){ feedbackEl.innerHTML='<div class="fb info"><h3 style="color:var(--plum-deep)">'+head0+'</h3><p class="read">'+rightNote+' Now classify it below: is it a Point change, an INDEL, or a Dynamic change, and then the specific type?</p></div>';
+      done[idx]=false; updateNav(); feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"}); return; }
+    if(!correct){ var reclass = mech0 ? "Your answers are right, but the classification is not. This variant is extra copies of a repeat unit, not a base swap or a lost or gained base. Re-classify it below." : "The DNA is right, but the classification is not. Look again at the amino acids under your sequence: did a letter swap, did the protein stop early, did the frame shift, or was a whole codon lost? Then re-classify it below.";
+      feedbackEl.innerHTML='<div class="fb no"><h3>'+head0+'</h3><p class="read">'+reclass+'</p></div>';
+      done[idx]=false; updateNav(); feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"}); return; }
+    showExplain();
+  };
+
+  $("#nudgeBtn").onclick=function(){ var it=ITEMS[idx]; feedbackEl.innerHTML='<div class="fb info"><h3 style="color:var(--plum-deep)">Hint</h3><p class="read">'+it.hint+'</p>'+helpLink(it)+'</div>'; };
+
+  var SUBLBL={missense:"Missense",nonsense:"Nonsense",silent:"Silent",frameshift:"Frameshift",inframe:"In-frame deletion",expansion:"Repeat expansion"};
+  function renderCasebar(){ var host=$("#casebar"); if(!host) return; host.innerHTML="";
+    ITEMS.forEach(function(it,i){ var c=document.createElement("button"); c.type="button";
+      c.className="chip"+(i===idx?" cur":"")+(done[i]?" done":"");
+      c.innerHTML='<span class="cn">'+(i+1)+'</span><span><span class="cg">'+esc(it.gene)+'</span></span><span class="mark">&#10003;</span>';
+      c.addEventListener("click",function(){ loadItem(i); });
+      host.appendChild(c);
+    });
+  }
+  function updateNav(){ var nx=$("#nextBtn"); if(done[idx]) nx.classList.remove("muted"); else nx.classList.add("muted"); }
+  $("#prevBtn").onclick=function(){ loadItem(idx-1); };
+  $("#nextBtn").onclick=function(){ if(!done[idx]){ feedbackEl.innerHTML='<div class="fb info"><h3 style="color:var(--plum-deep)">One more step</h3><p class="read">Build the change, classify it, and explain it to the patient before you move on. Press Check to see how you are doing.</p></div>'; feedbackEl.scrollIntoView({behavior:"smooth",block:"nearest"}); return; } loadItem(idx+1); };
+
+  /* ---------- test hooks ---------- */
+  window.__bg={ ITEMS:ITEMS, loadItem:loadItem, setBase:setBase, insBase:insBase, delBase:delBase, setReps:setReps,
+    setMech:function(si,oi){ var it=ITEMS[idx]; mech[si]=oi; clearFeedback(); if(it.mode==="mechanism") paintStep(it,si); },
+    setCat:function(c){cls.cat=c;cls.sub=null;buildSubs();syncClassify();}, setSub:function(s){cls.sub=s;syncClassify();},
+    check:function(){$("#checkBtn").click();}, share:function(t){var ta=$("#patientText"); if(ta){ta.value=t;$("#shareBtn").click();}},
+    work:function(){return work.join("");}, reps:function(){return reps;}, mech:function(){return mech.slice();}, isDone:function(){return done[idx];}, idx:function(){return idx;} };
+  buildRefTable();
+  enableTray();
+  loadItem(0);
+  window.__ready=true;
+})();
+</script>
+</body>
+</html>
