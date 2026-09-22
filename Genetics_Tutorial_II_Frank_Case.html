@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frank's case: read the report and classify</title>
+<style>
+  :root{
+    --purple:#4C2759; --purple2:#6A3A6F; --lilac:#EDE9EE; --lilacsoft:#F5F2F6;
+    --ink:#232323; --muted:#6E6E6E; --line:#D8CBE2; --greenbg:#E6F2E6; --green:#2E7D32;
+    --benign:#2E9E5B; --benignbg:#E7F4EC; --path:#CC3B3B; --pathbg:#FBEBEB;
+    --b1:#2E9E5B; --b2:#86B93B; --b3:#E4B21E; --b4:#E07B2A; --b5:#CC3B3B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Calibri,Arial,sans-serif;color:var(--ink);background:#faf8fb;}
+  header{background:var(--purple);color:#fff;padding:18px 26px;}
+  header h1{margin:0;font-size:22px;font-weight:700;}
+  header p{margin:5px 0 0;font-size:14px;color:#E6D9EC;}
+  .wrap{max-width:1000px;margin:0 auto;padding:18px 22px 60px;}
+  .scenario{background:var(--lilac);border-radius:12px;padding:14px 18px;margin:16px 0 6px;font-size:15px;line-height:1.55;color:var(--ink);}
+  .scenario b{color:var(--purple);}
+  .stepno{display:flex;align-items:center;gap:10px;margin:22px 0 10px;}
+  .stepno .n{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--purple);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;}
+  .stepno .l{font-size:15px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.03em;}
+  .q{font-size:16px;font-weight:700;color:var(--purple2);margin:2px 0 10px;}
+  .opts{display:flex;flex-direction:column;gap:10px;margin:10px 0;max-width:660px;}
+  .opt{display:flex;align-items:center;gap:14px;text-align:left;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--ink);background:#F3F3F5;border:2px solid transparent;border-radius:9px;padding:12px 16px;cursor:pointer;transition:background .1s,border-color .1s;}
+  .opt .lt{flex:0 0 auto;font-weight:800;color:var(--purple);font-size:15px;min-width:14px;}
+  .opt:hover:not(:disabled){background:#ECE6F1;}
+  .opt.right{background:var(--greenbg);border-color:var(--green);color:var(--green);font-weight:700;}
+  .opt.right .lt{color:var(--green);}
+  .opt .ck{margin-left:auto;color:var(--green);font-weight:800;font-size:17px;visibility:hidden;}
+  .opt.right .ck{visibility:visible;}
+  .opt.tried{opacity:.5;}
+  .opt.wrong{animation:sh .3s;border-color:var(--path);}
+  .opt:disabled{cursor:default;}
+  .optfb{display:none;font-size:14px;line-height:1.5;color:#8a2b2b;background:var(--pathbg);border:1px solid #e6bcbc;border-radius:10px;padding:11px 14px;margin:8px 0 2px;}
+  .optfb.show{display:block;}
+  .optfb .tutor{display:block;margin-top:6px;font-weight:800;color:var(--path);}
+  .mcqhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .mcqbadges{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:22px;flex:0 0 auto;}
+  .mcqbadge{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-radius:7px;padding:4px 14px;}
+  .mcqbadge.mcq{background:var(--purple);color:#fff;}
+  .mcqbadge.answer{background:#C8E6C9;color:var(--green);display:none;}
+  .mcqbadge.answer.show{display:inline-block;}
+  .mcqgrid{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;margin:10px 0;}
+  .mcqgrid .opts{flex:1 1 380px;max-width:620px;margin:0;}
+  .side{flex:1 1 300px;border-radius:12px;padding:13px 16px;background:var(--lilacsoft);border:1px solid var(--line);}
+  .side.why{background:var(--greenbg);border-color:#BFE0C0;}
+  .side .sidehd{font-size:14px;font-weight:800;color:var(--purple2);margin-bottom:6px;}
+  .side.why .sidehd{color:var(--green);}
+  .side .sidetx{font-size:13px;line-height:1.55;color:var(--ink);}
+  .s2intro{background:var(--lilacsoft);border:1px solid var(--line);border-radius:10px;padding:11px 15px;font-size:14.5px;color:var(--purple2);margin:6px 0 14px;line-height:1.5;}
+  .s2intro b{color:var(--purple);}
+  .bar{display:flex;align-items:center;gap:14px;margin:4px 0 12px;}
+  .count{font-size:15px;font-weight:700;color:var(--purple);}
+  .dots{display:flex;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--line);cursor:pointer;}
+  .dot.on{background:var(--purple);}
+  .dot.ok{background:var(--green);}
+
+  /* lab-report document */
+  .report{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .rephead{background:var(--purple);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .rephead .labname{font-size:15px;font-weight:800;}
+  .rephead .reptitle{font-size:11px;opacity:.82;text-transform:uppercase;letter-spacing:.09em;margin-top:2px;}
+  .rephead .repid{font-size:11px;opacity:.8;font-family:'Courier New',monospace;text-align:right;}
+  .repmeta{display:flex;flex-wrap:wrap;gap:8px 28px;padding:11px 18px;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .repmeta .k{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-right:6px;}
+  .repblock{padding:12px 18px;border-bottom:1px solid #EEE8F1;}
+  .repblock:last-child{border-bottom:none;}
+  .repblock .rk{font-size:11px;font-weight:800;color:var(--purple2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .repblock .rv{font-size:14.5px;}
+  .repblock .gene,.repblock .var{font-family:'Courier New',monospace;font-weight:700;color:var(--purple);}
+  .repblock .zyg{font-size:12.5px;color:var(--muted);font-style:italic;margin-left:6px;}
+  .repblock .para{font-size:14px;line-height:1.85;color:var(--ink);}
+  a.cite{color:var(--purple);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);white-space:nowrap;}
+  a.cite:hover{text-decoration-color:var(--purple);}
+  .reallab{background:#F1EEF6;border:1px dashed var(--line);border-left:4px solid var(--purple2);border-radius:8px;padding:9px 13px;margin:0 0 14px;font-size:12.8px;line-height:1.5;color:var(--purple2);}
+  .reallab b{color:var(--purple);}
+
+  /* draggable evidence, inline in the report */
+  .ev{background:#F3EEF7;border-bottom:2px dotted #B7A9C6;border-radius:3px;padding:1px 4px;cursor:grab;font-weight:600;color:var(--purple2);touch-action:none;transition:background .1s;}
+  .ev:hover{background:#E3D5EE;}
+  .ev.dragging{opacity:.4;}
+  .ev.sorted{cursor:default;border-bottom:none;}
+  .ev.sorted.sb{background:var(--benignbg);color:var(--benign);}
+  .ev.sorted.sp{background:var(--pathbg);color:var(--path);}
+  .evfly{position:fixed;z-index:999;pointer-events:none;background:#E3D5EE;border:1px solid var(--line);color:var(--purple2);font-weight:600;font-size:13.5px;padding:6px 10px;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.28);line-height:1.3;max-width:320px;}
+
+  .step{font-size:13px;font-weight:700;color:var(--purple2);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 8px;}
+  .bins{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;}
+  .bin{flex:1 1 300px;border-radius:12px;padding:12px;min-height:130px;border:2px solid;}
+  .bin.benign{border-color:var(--benign);background:var(--benignbg);}
+  .bin.path{border-color:var(--path);background:var(--pathbg);}
+  .bin .bt{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px;text-align:center;}
+  .bin.benign .bt{color:var(--benign);}
+  .bin.path .bt{color:var(--path);}
+  .bin .slot:empty::after{content:"Drag any that fit here.";display:block;color:var(--muted);font-size:12.5px;font-style:italic;text-align:center;padding:8px 0;}
+  .bin.over{box-shadow:0 0 0 3px rgba(76,39,89,.18);}
+  .bin.wrong{animation:sh .3s;}
+  @keyframes sh{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .placed{background:#fff;border-radius:9px;padding:8px 11px;margin-bottom:7px;font-size:13px;}
+  .placed .ptxt{font-weight:600;}
+  .placed .why{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35;}
+  .feedback.near{color:#B26B00;}
+  .feedback{font-size:13px;font-weight:600;color:var(--path);min-height:18px;margin:9px 2px 0;}
+  .final{display:none;margin-top:16px;border-top:1px dashed var(--line);padding-top:13px;}
+  .final.show{display:block;}
+  .final .qq{font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:9px;}
+  .scale{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg{flex:1 1 0;min-width:118px;border:none;border-radius:10px;color:#fff;font-weight:700;font-size:12.5px;padding:12px 8px;cursor:pointer;text-align:center;line-height:1.2;opacity:.92;transition:transform .1s,opacity .1s;}
+  .seg:hover{opacity:1;transform:translateY(-1px);}
+  .seg.dim{opacity:.32;}
+  .seg.locked{outline:3px solid rgba(0,0,0,.18);opacity:1;box-shadow:0 3px 9px rgba(0,0,0,.18);}
+  .seg.wrong{animation:sh .3s;}
+  .reveal{display:none;margin-top:14px;}
+  .reveal.show{display:block;}
+  .verdict{font-size:15px;font-weight:800;margin:0 0 8px;}
+  .whyfull{display:none;background:#FFF4E0;border:1px solid #EAD3A3;border-left:4px solid var(--b4);border-radius:10px;padding:11px 14px;margin:0 0 12px;font-size:13.5px;line-height:1.55;color:#6b4e12;}
+  .whyfull.show{display:block;}
+  .whyfull b{color:#8a5a0a;}
+  .whyfull.good{background:var(--greenbg);border-color:#BFE0C0;border-left-color:var(--green);color:#1f5b2a;}
+  .whyfull.good b{color:var(--green);}
+  .pt{background:var(--greenbg);border:1px solid #BFE0C0;border-radius:10px;padding:11px 14px;}
+  .pt .h{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em;margin:0 0 5px;}
+  .pt .t{font-size:13.5px;color:var(--ink);line-height:1.45;}
+  .explain{margin-top:4px;}
+  .pt-h{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px;}
+  .exq{font-size:14px;color:var(--ink);line-height:1.5;margin:0 0 9px;}
+  .extext{width:100%;min-height:96px;font-family:inherit;font-size:14px;line-height:1.55;color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:11px 13px;resize:vertical;background:#fff;}
+  .extext:focus{outline:none;border-color:var(--purple2);}
+  .exrow{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .ex-model{font-family:inherit;font-size:14px;font-weight:700;color:var(--purple);background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:10px 18px;cursor:pointer;}
+  .ex-model:hover{border-color:var(--purple2);}
+  .exfb{font-size:13.5px;line-height:1.5;margin-top:11px;}
+  .exfb.warn{color:#8a2b2b;}
+  .exfb.ok{color:var(--green);font-weight:700;}
+  .exfb ul{margin:7px 0 0 20px;color:var(--ink);font-weight:400;}
+  .exfb li{margin:3px 0;}
+  .exfb .ask{display:block;margin-top:9px;font-weight:800;color:var(--purple2);}
+  .exmodel{display:none;margin-top:13px;}
+  .exmodel.show{display:block;}
+  .exmodel-h{font-size:11px;font-weight:800;color:var(--purple2);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;}
+  .model-quote{background:#fff;border:1px solid var(--line);border-left:5px solid var(--purple);border-radius:10px;padding:14px 18px;font-size:14px;line-height:1.6;color:var(--ink);font-style:italic;}
+  .whatnext{background:#E1F1EF;border:1px solid #BBD9D5;border-radius:10px;padding:12px 15px;margin-top:10px;font-size:13.5px;line-height:1.5;color:var(--ink);}
+  .whatnext b{color:#1C6E8C;display:block;margin-bottom:4px;}
+  .nav{margin-top:16px;text-align:right;}
+  button.nav-btn{font-family:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--purple);border:none;border-radius:22px;padding:10px 20px;cursor:pointer;}
+  button.nav-btn:hover{background:var(--purple2);}
+  .done-banner{display:none;background:var(--greenbg);border:1.5px solid var(--green);color:var(--green);font-weight:700;border-radius:12px;padding:16px 18px;font-size:15.5px;margin-top:8px;line-height:1.5;}
+  .done-banner.show{display:block;}
+
+  /* Stage 3: next steps for the family */
+  .nextcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+  .nextcard .nvar{font-size:14.5px;}
+  .nextcard .nvar .gene,.nextcard .nvar .var{font-family:'Courier New',monospace;font-weight:700;color:var(--purple);}
+  .ntag{display:inline-block;font-size:11px;font-weight:800;color:#fff;border-radius:20px;padding:2px 10px;margin-left:8px;text-transform:uppercase;letter-spacing:.03em;vertical-align:middle;}
+  .nextcard .nq{font-size:14.5px;font-weight:700;color:var(--purple2);margin:10px 0 11px;}
+  .nbtns{display:flex;gap:10px;flex-wrap:wrap;}
+  .nbtn{font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);background:#F3F3F5;border:2px solid transparent;border-radius:9px;padding:11px 18px;cursor:pointer;transition:background .1s,border-color .1s;}
+  .nbtn:hover:not(:disabled){background:#ECE6F1;}
+  .nbtn.right{background:var(--greenbg);border-color:var(--green);color:var(--green);}
+  .nbtn.wrong{animation:sh .3s;border-color:var(--path);}
+  .nbtn.dim{opacity:.4;}
+  .nbtn:disabled{cursor:default;}
+  .nwhy{display:none;font-size:13.5px;line-height:1.55;color:var(--ink);background:var(--greenbg);border:1px solid #BFE0C0;border-radius:10px;padding:11px 14px;margin-top:11px;}
+  .nwhy.show{display:block;}
+  .nfeedback{font-size:13px;font-weight:600;color:var(--path);min-height:16px;margin-top:8px;line-height:1.45;}
+  .nextfollow{display:none;background:#E1F1EF;border:1px solid #BBD9D5;border-radius:10px;padding:13px 16px;margin:2px 0 8px;font-size:13.8px;line-height:1.55;color:var(--ink);}
+  .nextfollow.show{display:block;}
+  .nextfollow b{color:#1C6E8C;display:block;margin-bottom:4px;}
+
+  /* persistent Previous / Next wizard bar */
+  .wnav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 4px;padding-top:14px;border-top:1px dashed var(--line);}
+  .wnav[hidden]{display:none;}
+  .wbtn{font-family:inherit;font-size:14px;font-weight:700;border-radius:22px;padding:10px 20px;cursor:pointer;border:none;transition:background .1s,border-color .1s,opacity .1s;}
+  .wbtn.prev{background:#fff;border:1.5px solid var(--line);color:var(--purple);}
+  .wbtn.prev:hover:not(:disabled){border-color:var(--purple2);}
+  .wbtn.next{background:var(--purple);color:#fff;}
+  .wbtn.next:hover:not(:disabled){background:var(--purple2);}
+  .wbtn:disabled{opacity:.38;cursor:default;}
+  .wpos{font-size:13px;font-weight:700;color:var(--muted);text-align:center;flex:1 1 auto;}
+  footer{font-size:12.5px;color:var(--muted);text-align:center;padding:8px 22px 30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Frank's case</h1>
+  <p>Genetics Tutorial II &middot; In-Class (Flipped) &middot; read the report and classify the result</p>
+</header>
+<div class="wrap">
+  <div class="scenario">Frank, 42, is diagnosed with hypertrophic cardiomyopathy (HCM) after an echocardiogram shows thickened heart muscle, and there is a family history of cardiomyopathy. He meets the criteria for HCM genetic testing, so his physician orders a cardiomyopathy (HCM) gene panel to confirm the genetic cause and open cascade testing for the family.</div>
+
+  <section id="s1"></section>
+
+  <section id="s2" hidden>
+    <div class="stepno"><span class="n">1</span><span class="l">Classify the result</span></div>
+    <div class="s2intro">Frank's HCM gene panel came back with <b>two</b> variants. In each report the key findings are <b>highlighted</b>. Drag each highlighted finding straight out of the report into the bin it supports (does it lean <b style="color:#2E9E5B">benign</b> or <b style="color:#CC3B3B">pathogenic</b>?), then make the final call and see how you would explain it to Frank.</div>
+    <div class="bar">
+      <span class="count" id="count"></span>
+      <span class="dots" id="dots"></span>
+    </div>
+    <div id="stage"></div>
+  </section>
+
+  <section id="s3" hidden>
+    <div class="mcqhead">
+      <div class="stepno"><span class="n">2</span><span class="l">What happens next</span></div>
+      <div class="mcqbadges"><span class="mcqbadge answer" id="ansbadge3">Answer</span><span class="mcqbadge mcq">MCQ</span></div>
+    </div>
+    <div class="s2intro" id="nextintro"></div>
+    <div class="q" id="nextq"></div>
+    <div class="mcqgrid">
+      <div class="opts" id="nextopts"></div>
+      <aside class="side" id="s3side">
+        <div class="sidehd">Think, pair, share</div>
+        <div class="sidetx">Think: decide the plan on your own. Pair: compare with a neighbour and agree. Share: talk it through, then check.</div>
+      </aside>
+    </div>
+    <div class="optfb" id="nextfb"></div>
+  </section>
+
+  <div class="wnav" id="wnav" hidden>
+    <button class="wbtn prev" id="wprev">&larr; Previous</button>
+    <span class="wpos" id="wpos"></span>
+    <button class="wbtn next" id="wnext">Next &rarr;</button>
+  </div>
+
+  <div class="done-banner" id="banner">Done. You pulled the evidence out of each report, weighed benign against pathogenic, made the call, and explained each result to Frank. You also worked out the family plan: his sister is offered a targeted test for the pathogenic MYBPC3 change, while the uncertain MYH7 variant is kept on file and is not used to test relatives until it is reclassified.</div>
+</div>
+<footer>Tip for the tutor: project this or share the link. The five-point scale (benign, likely benign, uncertain, likely pathogenic, pathogenic) and the evidence types mirror how real variant reports are written.</footer>
+
+<script>
+const LEVELS = [
+  {k:"Benign", v:"--b1"},{k:"Likely benign", v:"--b2"},{k:"Uncertain", v:"--b3"},
+  {k:"Likely pathogenic", v:"--b4"},{k:"Pathogenic", v:"--b5"},
+];
+
+const TEST = {
+  question:"Which test would you offer Frank first?",
+  options:[
+    {t:"Chromosomal microarray", ok:false, why:"A microarray looks for large gains and losses of DNA (copy-number changes), not the single-base and small INDEL variants that usually cause HCM. It would most likely miss the cause."},
+    {t:"Karyotype", ok:false, why:"A karyotype shows whole or very large chromosome changes, not the gene-level point and INDEL variants behind HCM. That is the wrong scale for this question."},
+    {t:"A cardiomyopathy (HCM) NGS gene panel", ok:true, why:"With a clear clinical differential (HCM), a targeted NGS panel reads all the relevant cardiomyopathy genes at once: efficient and high-yield. Karyotype and microarray look for large chromosomal changes, not the point and INDEL variants that cause HCM. The Ontario Genetic Test Directory shows what is funded and where."},
+    {t:"No testing is needed", ok:false, why:"Frank has a clear diagnosis and a family history, so a molecular result would guide his care and open cascade testing for relatives. Testing is warranted here."},
+  ]
+};
+
+function pmid(id){ return `<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/${id}/" target="_blank" rel="noopener">${id}</a>`; }
+function vcv(id,label){ return `<a class="cite" href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${id}/" target="_blank" rel="noopener">${label}</a>`; }
+
+const CASES = [
+  {
+    gene:"MYBPC3", variant:"c.2780_2781del", repid:"HCM-PANEL / RPT-0412", real:true,
+    report:`The c.2780_2781del variant in the MYBPC3 gene is {{0}}. {{1}} (PMID ${pmid('12788380')}, ${pmid('18467358')}, ${pmid('19574547')}, ${pmid('30456444')}, and others) with a very strong level of evidence (PMID ${pmid('30192042')}). It has {{2}}. It has been {{3}} (PMID ${pmid('28790153')}, ${pmid('28615295')}, ${pmid('24093860')}, ${pmid('19574547')}, ${pmid('20474083')}, CHEO Internal Database, ClinVar database). This variant was {{4}} (ClinVar database). This variant is listed in ClinVar (${vcv('177660','VCV000177660')}).`,
+    chips:[
+      {t:"predicted to cause a frameshift resulting in a premature stop at codon 1049, leading to a truncated or absent protein", bin:"path", why:"A frameshift that truncates the protein is a loss-of-function change, and loss of function is the disease mechanism for MYBPC3. Strong pathogenic evidence."},
+      {t:"Heterozygous loss-of-function variants in the MYBPC3 gene is a well-established mechanism of disease for hypertrophic cardiomyopathy", bin:"path", why:"The mechanism of this variant, loss of function, matches the established mechanism of Frank's disease, at a very strong level of evidence."},
+      {t:"not been reported in control populations in the Genome Aggregation Database (gnomAD)", bin:"path", why:"Absent from large healthy population databases: too rare to be a common, harmless change."},
+      {t:"previously reported in > 5 apparently unrelated individuals with hypertrophic or dilated cardiomyopathy", bin:"path", why:"Seen in more than five unrelated affected individuals: case evidence for pathogenicity."},
+      {t:"reported to segregate with disease in 1 family", bin:"path", why:"The variant tracks with disease through a family: supporting pathogenic evidence."},
+    ],
+    answer:"Pathogenic", accept:["Pathogenic","Likely pathogenic"],
+    whyCall:"This is a truncating loss-of-function change in MYBPC3, and loss of function in this gene is a well-established cause of HCM (very strong evidence). It is also absent from gnomAD, has been seen in more than five unrelated affected people, and segregates with disease in a family. Strong, moderate and supporting evidence all point the same way with nothing against, so it reaches <b>Pathogenic</b>, not just Likely pathogenic.",
+    explain:{
+      prompt:"In plain words, how would you explain this result to Frank? Type it as if you are telling him.",
+      keyPoints:[
+        { kw:["explain","explains","cause","causes","reason","why he","responsible","accounts for","found the cause","behind","source of","the cause of"], nudge:"Say that this change is the cause of Frank's heart condition: it explains his diagnosis." },
+        { kw:["loss of function","truncat","frameshift","switch","switches off","turns off","one copy","one working copy","stops working","stop working","does not work","doesn't work","faulty","broken","missing protein","not enough protein","half"], nudge:"Explain in plain words what the change does: it disrupts a copy of the gene so it no longer makes normal working protein." },
+        { kw:["relative","relatives","family","sister","cascade","children","test others","others in the family","siblings","parents","predictive"], nudge:"Mention that because it is a clear result, his close relatives can be offered a simple test for this exact change." },
+      ],
+      model:'"This change disrupts one working copy of the MYBPC3 gene so it no longer makes normal protein, and this kind of change is a known cause of hypertrophic cardiomyopathy, so it explains your diagnosis. Because it is a clear, confirmed result, we can offer your close relatives a simple targeted test for this exact change."',
+      whatNext:"Name what was found and that it explains the diagnosis. Say what the change does in plain words. A confirmed pathogenic result. Offer single-site cascade testing to close relatives. Frank's care follows his cardiology plan."
+    },
+    patient:"This change switches off one working copy of the MYBPC3 gene, and this kind of change is a known cause of hypertrophic cardiomyopathy, so it explains your diagnosis. Because it is a clear, confirmed result, we can offer your close relatives a simple targeted test for this exact change."
+  },
+  {
+    gene:"MYH7", variant:"c.2345C>T (p.Pro782Leu)", repid:"HCM-PANEL / RPT-0412",
+    report:"Sequencing also identified a heterozygous missense variant in MYH7. The variant is {{0}} and {{1}}. However, {{2}}, and it has {{3}}. No functional studies are available.",
+    chips:[
+      {t:"absent from large population databases", bin:"path", why:"Rarity is a mild pathogenic-supporting signal, but only mild on its own."},
+      {t:"changes an amino acid in a conserved region", bin:"path", why:"Conserved positions tend to matter more: a mild pathogenic signal."},
+      {t:"computational tools disagree, with several calling the change tolerated", bin:"benign", why:"Computational prediction leaning benign, and the tools do not even agree."},
+      {t:"not been reported in any affected individual to date", bin:"benign", why:"No case evidence to support pathogenicity yet."},
+    ],
+    answer:"Uncertain", accept:["Uncertain"],
+    whyCall:"The evidence pulls both ways: the variant is rare and sits in a conserved region (mild pathogenic signals), but computational tools disagree and several call it tolerated, and it has not been reported in any affected person. Weak evidence on each side and nothing decisive, so it cannot be called benign or pathogenic and it stays <b>Uncertain</b> (a VUS).",
+    explain:{
+      prompt:"In plain words, how would you explain this uncertain result (a VUS) to Frank? Type it as if you are telling him.",
+      keyPoints:[
+        { kw:["uncertain","not enough","don't know","dont know","do not know","not sure","unsure","unclear","unknown","can't say","cannot say","not certain","not an answer","don't yet know","dont yet know","hard to say","not able to say"], nudge:"Make clear the result is uncertain: we do not yet know whether this change matters or is harmless." },
+        { kw:["not change","does not change","doesn't change","should not change","shouldn't change","not act","won't act","not used","on its own","care continues","clinical","manage","treat","not base"], nudge:"Say it should not change Frank's care on its own; we do not act on a VUS." },
+        { kw:["reinterpret","reclassif","re-classif","looked at again","look at it again","looked at it again","second look","review","revisit","as we learn","learn more","more evidence","more is known","over time","in future","updated","re-evaluat","reevaluat"], nudge:"Mention it can be looked at again and may be reclassified as laboratories learn more." },
+        { kw:["relative","family","sibling","sister","predictive","test others","cascade"], nudge:"You could add that we do not use a VUS to test relatives.", optional:true },
+      ],
+      model:'"The test found a change in one of the genes we were looking at, but right now there is not enough evidence to say whether it explains your features or is simply a harmless difference. It is not an answer, and it should not change your care on its own. As laboratories learn more, results like this can be reinterpreted, so we will plan to have it looked at again."',
+      whatNext:"Explain the uncertainty in plain words. Genetics follow-up. No predictive testing of relatives on a VUS. Care continues on clinical grounds. A second look is planned, not assumed."
+    },
+    patient:"The panel also found a second change, in another heart gene, that we do not yet fully understand: a variant of uncertain significance. The evidence pulls both ways and is not enough to call it. We do not act on it or change your care because of it, we keep it on file in case it is reclassified later, and it is not used to test relatives."
+  },
+];
+
+const NEXT = {
+  intro:"You have classified both results and explained each one to Frank. Now put them together: what happens next for Frank and his family?",
+  question:"Frank's sister asks whether she should be tested. Putting both results together, what happens next for the family?",
+  options:[
+    {t:"Offer his close relatives targeted testing for both the MYBPC3 and the MYH7 variants.", ok:false, why:"Careful with the uncertain one. A variant of uncertain significance is not used to test relatives, so the MYH7 variant should not be part of family testing yet."},
+    {t:"Offer his close relatives targeted testing for the pathogenic MYBPC3 variant only, not the uncertain MYH7 variant.", ok:true},
+    {t:"Offer his close relatives targeted testing for the uncertain MYH7 variant, not the MYBPC3 variant.", ok:false, why:"That reverses it. The confirmed pathogenic MYBPC3 result is the one worth cascading to relatives; the uncertain MYH7 variant is not used for relative testing."},
+    {t:"Do no further family testing now that the diagnosis has been made.", ok:false, why:"Finding the cause is exactly what opens family testing. Close relatives can be offered the targeted MYBPC3 test, so there is a clear next step for the family."},
+  ],
+  why:"The MYBPC3 result is a confirmed pathogenic variant, so his sister and other close relatives can be offered simple single-site testing for that exact change: carriers are offered cardiac screening, and non-carriers are reassured. The MYH7 variant is uncertain, so it is not used to test relatives; it is kept on file and re-reviewed as evidence grows, and it does not change anyone's care on its own. Frank's own care continues on his cardiology plan, and if the VUS is ever reclassified the genetics service re-contacts the family."
+};
+
+const s1 = document.getElementById('s1');
+const s2 = document.getElementById('s2');
+const s3 = document.getElementById('s3');
+const stage = document.getElementById('stage');
+const countEl = document.getElementById('count');
+const dotsEl = document.getElementById('dots');
+const banner = document.getElementById('banner');
+const wnav = document.getElementById('wnav');
+let idx = 0, s1done = false, view = 'test';
+const ST = CASES.map(()=>({ placed:[], pick:null, exText:'', exDone:false, exTries:0 }));
+
+dotsEl.innerHTML = CASES.map((_,i)=>`<span class="dot${i===0?' on':''}" data-i="${i}" title="Go to variant ${i+1}"></span>`).join('');
+[...dotsEl.children].forEach((d,i)=> d.addEventListener('click', ()=>{ if(view!=='variant' || i!==idx) showVariant(i); }));
+
+function isDone(i){ const s=ST[i], c=CASES[i]; return !!s.pick && s.placed.length===c.chips.length && (!c.explain || s.exDone); }
+function updateDots(){ [...dotsEl.children].forEach((d,i)=>{ d.className = 'dot' + (isDone(i) ? ' ok' : (view==='variant' && i===idx ? ' on' : '')); }); }
+
+/* ---------------------------------------------------------------- Stage 1: choose the test */
+function renderS1(){
+  const letters = ["A","B","C","D","E"];
+  const opts = TEST.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="lt">${letters[i]}</span><span class="tx">${o.t}</span><span class="ck">&#10003;</span></button>`).join('');
+  s1.innerHTML = `
+    <div class="mcqhead">
+      <div class="stepno"><span class="n">1</span><span class="l">Choose the test</span></div>
+      <div class="mcqbadges"><span class="mcqbadge answer" id="ansbadge">Answer</span><span class="mcqbadge mcq">MCQ</span></div>
+    </div>
+    <div class="q">${TEST.question}</div>
+    <div class="mcqgrid">
+      <div class="opts">${opts}</div>
+      <aside class="side" id="s1side">
+        <div class="sidehd">Think, pair, share</div>
+        <div class="sidetx">Think: choose your answer on your own. Pair: compare with a neighbour and agree. Share: talk it through, then lock it in.</div>
+      </aside>
+    </div>
+    <div class="optfb" id="fb1"></div>
+    <div class="nav" id="s1nav"></div>`;
+  s1.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+    if(s1done) return;
+    const o = TEST.options[+b.dataset.i];
+    const fb1 = document.getElementById('fb1');
+    if(o.ok){
+      s1done = true;
+      s1.querySelectorAll('.opt').forEach(x => { x.disabled = true; if(x!==b) x.classList.add('tried'); });
+      b.classList.add('right'); b.classList.remove('tried');
+      fb1.classList.remove('show'); fb1.innerHTML = '';
+      document.getElementById('ansbadge').classList.add('show');
+      const side = document.getElementById('s1side');
+      side.classList.add('why');
+      side.innerHTML = `<div class="sidehd">Why</div><div class="sidetx">${o.why}</div>`;
+      document.getElementById('s1nav').innerHTML = `<button class="nav-btn" id="tos2">See the panel result &rarr;</button>`;
+      document.getElementById('tos2').addEventListener('click', () => showVariant(0));
+    } else {
+      b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),320);
+      b.classList.add('tried');
+      fb1.innerHTML = o.why + `<span class="tutor">Not quite. Talk it through with your tutor, or someone else in the class, then try again.</span>`;
+      fb1.classList.add('show');
+    }
+  }));
+}
+
+/* ---------------------------------------------------------------- Stage 2: classify (drag from the report) */
+function render(){
+  const c = CASES[idx], s = ST[idx];
+  countEl.textContent = `Variant ${idx+1} of ${CASES.length}`;
+  updateDots();
+  let interp = c.report;
+  c.chips.forEach((ch,i)=>{
+    const sorted = s.placed.includes(i);
+    const cls = 'ev' + (sorted ? ' sorted ' + (ch.bin==='benign'?'sb':'sp') : '');
+    interp = interp.replace('{{'+i+'}}', `<span class="${cls}" data-i="${i}" data-bin="${ch.bin}">${ch.t}</span>`);
+  });
+  const segs = LEVELS.map(l=>`<button class="seg" style="background:var(${l.v})" data-k="${l.k}">${l.k}</button>`).join('');
+  stage.innerHTML = `
+    <div class="report">
+      <div class="rephead">
+        <div><div class="labname">Molecular Genetics Laboratory</div><div class="reptitle">Genetic variant report</div></div>
+        <div class="repid">${c.repid}</div>
+      </div>
+      <div class="repmeta">
+        <div><span class="k">Patient</span> Frank, age 42</div>
+        <div><span class="k">Sample</span> Blood (DNA)</div>
+        <div><span class="k">Test</span> HCM gene panel</div>
+      </div>
+      <div class="repblock">
+        <div class="rk">Result</div>
+        <div class="rv"><span class="gene">${c.gene}</span>&nbsp; <span class="var">${c.variant}</span><span class="zyg">heterozygous</span></div>
+      </div>
+      <div class="repblock">
+        <div class="rk">Interpretation</div>
+        <div class="para">${interp}</div>
+      </div>
+    </div>
+    ${c.real ? '<div class="reallab"><b>This is a real variant and laboratory write-up</b> observed in the CHEO Genetics Diagnostic Laboratory. The PMID and ClinVar links are live if you want to read the primary evidence.</div>' : ''}
+    <div class="step">Step 1 &middot; drag each highlighted finding from the report into the bin it supports</div>
+    <div class="bins">
+      <div class="bin benign" data-bin="benign"><div class="bt">Leans benign</div><div class="slot"></div></div>
+      <div class="bin path" data-bin="path"><div class="bt">Leans pathogenic</div><div class="slot"></div></div>
+    </div>
+    <div class="feedback" id="fb"></div>
+    <div class="final" id="final">
+      <div class="step" style="margin-top:4px">Step 2 &middot; make the final call</div>
+      <div class="qq">Weighing it all together, how would you classify this variant?</div>
+      <div class="scale">${segs}</div>
+      <div class="feedback" id="fb2"></div>
+      <div class="reveal" id="reveal">
+        <div class="verdict" id="verdict"></div>
+        <div class="whyfull" id="whyfull"></div>
+        ${c.explain ? writeBox(c) : '<div class="pt"><div class="h">Explaining it to Frank</div><div class="t">'+c.patient+'</div></div>'}
+      </div>
+    </div>`;
+  s.placed.forEach(i=>{
+    const ch = c.chips[i];
+    const slot = stage.querySelector('.bin[data-bin="'+ch.bin+'"] .slot');
+    const div = document.createElement('div'); div.className='placed';
+    div.innerHTML = `<div class="ptxt">${ch.t}</div><div class="why">${ch.why}</div>`;
+    slot.appendChild(div);
+  });
+  wireDrag(c);
+  wireFinal(c);
+  if(s.placed.length === c.chips.length) document.getElementById('final').classList.add('show');
+  if(s.pick) restoreClassified(c, s);
+  updateNav();
+}
+function showWhyCall(c){
+  const el = document.getElementById('whyfull');
+  if(!el) return;
+  const pick = ST[idx].pick;
+  const near = pick && pick !== c.answer;
+  let html = '';
+  if(near) html += `<b>You called it ${pick}; the final classification is ${c.answer}.</b> `;
+  html += c.whyCall || '';
+  if(!html){ el.classList.remove('show'); return; }
+  el.innerHTML = html;
+  el.classList.toggle('good', !near);
+  el.classList.add('show');
+}
+function restoreClassified(c, s){
+  stage.querySelectorAll('.seg').forEach(b=>{ b.classList.add('dim'); if(b.dataset.k===s.pick){b.classList.remove('dim');b.classList.add('locked');} b.disabled=true; });
+  const lvl = LEVELS.find(l=>l.k===c.answer);
+  const vd = document.getElementById('verdict');
+  vd.textContent = 'Classification: ' + c.answer;
+  vd.style.color = getComputedStyle(document.documentElement).getPropertyValue(lvl.v).trim();
+  document.getElementById('reveal').classList.add('show');
+  showWhyCall(c);
+  if(c.explain){
+    const ta = document.getElementById('extext');
+    if(ta) ta.value = s.exText || '';
+    if(s.exDone) document.getElementById('exmodel').classList.add('show');
+    wireExplain(c, ()=>{ ST[idx].exDone = true; updateNav(); });
+  }
+}
+
+let ghost=null, src=null, offX=0, offY=0, curCase=null;
+function wireDrag(c){
+  curCase = c;
+  stage.querySelectorAll('.ev').forEach(ev => ev.addEventListener('pointerdown', onDown));
+}
+function onDown(e){
+  const ev = e.currentTarget;
+  if(ev.classList.contains('sorted')) return;
+  e.preventDefault(); src = ev;
+  const r = ev.getBoundingClientRect();
+  ghost = ev.cloneNode(true); ghost.className = 'evfly';
+  ghost.style.width = Math.min(r.width, 300)+'px';
+  document.body.appendChild(ghost);
+  offX = Math.min(e.clientX - r.left, 150); offY = e.clientY - r.top;
+  place(e.clientX, e.clientY);
+  ev.classList.add('dragging');
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+function place(x,y){ ghost.style.left=(x-offX)+'px'; ghost.style.top=(y-offY)+'px'; }
+function binAt(x,y){ const el=document.elementFromPoint(x,y); return el?el.closest('.bin'):null; }
+function onMove(e){
+  place(e.clientX, e.clientY);
+  stage.querySelectorAll('.bin').forEach(b=>b.classList.remove('over'));
+  const b = binAt(e.clientX, e.clientY);
+  if(b) b.classList.add('over');
+}
+function onUp(e){
+  const b = binAt(e.clientX, e.clientY);
+  if(ghost){ ghost.remove(); ghost=null; }
+  stage.querySelectorAll('.bin').forEach(x=>x.classList.remove('over'));
+  if(src) src.classList.remove('dragging');
+  const fb = document.getElementById('fb');
+  if(b && src){
+    if(b.dataset.bin === src.dataset.bin){
+      const ch = curCase.chips[+src.dataset.i];
+      const slot = b.querySelector('.slot');
+      const div = document.createElement('div');
+      div.className='placed';
+      div.innerHTML = `<div class="ptxt">${ch.t}</div><div class="why">${ch.why}</div>`;
+      slot.appendChild(div);
+      src.classList.add('sorted', b.dataset.bin==='benign'?'sb':'sp');
+      if(!ST[idx].placed.includes(+src.dataset.i)) ST[idx].placed.push(+src.dataset.i);
+      fb.textContent='';
+      checkAllPlaced();
+    } else {
+      b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),320);
+      fb.textContent = 'Not that bin. Re-read that finding in the report: which way does it push, benign or pathogenic?';
+    }
+  }
+  src=null;
+  window.removeEventListener('pointermove', onMove);
+  window.removeEventListener('pointerup', onUp);
+}
+function checkAllPlaced(){
+  if(stage.querySelectorAll('.ev:not(.sorted)').length === 0){
+    document.getElementById('final').classList.add('show');
+  }
+}
+function wireFinal(c){
+  const fb2 = () => document.getElementById('fb2');
+  stage.querySelectorAll('.seg').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(document.getElementById('reveal').classList.contains('show')) return;
+      const pick = btn.dataset.k;
+      if(pick === c.answer){
+        ST[idx].pick = pick;
+        stage.querySelectorAll('.seg').forEach(b=>{ b.classList.add('dim'); if(b.dataset.k===pick){b.classList.remove('dim');b.classList.add('locked');} b.disabled=true; });
+        const lvl = LEVELS.find(l=>l.k===c.answer);
+        const vd = document.getElementById('verdict');
+        vd.textContent = 'Classification: ' + c.answer;
+        vd.style.color = getComputedStyle(document.documentElement).getPropertyValue(lvl.v).trim();
+        fb2().textContent='';
+        document.getElementById('reveal').classList.add('show');
+        showWhyCall(c);
+        updateDots();
+        if(c.explain){ wireExplain(c, ()=>{ ST[idx].exDone = true; updateNav(); }); }
+        updateNav();
+      } else if(c.accept.includes(pick)){
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),320);
+        fb2().className = 'feedback near';
+        fb2().textContent = 'Close - that is the right direction, but not the final call here. Look again at how strong the evidence is, then try the classification you think fits best.';
+      } else {
+        btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),320);
+        fb2().className = 'feedback';
+        fb2().textContent = 'Look again at how the two bins balance out before deciding.';
+      }
+    });
+  });
+}
+
+function writeBox(c){
+  return `<div class="explain">
+    <div class="pt-h">Explaining it to Frank</div>
+    <p class="exq">${c.explain.prompt}</p>
+    <textarea class="extext" id="extext" placeholder="Type how you would explain it to Frank, in plain words..."></textarea>
+    <div class="exrow">
+      <button class="nav-btn ex-check" id="excheck">Check my explanation</button>
+    </div>
+    <div class="exfb" id="exfb"></div>
+    <div class="exmodel" id="exmodel">
+      <div class="exmodel-h">One way to put it to Frank</div>
+      <div class="model-quote">${c.explain.model}</div>
+    </div>
+  </div>`;
+}
+function wireExplain(c, done){
+  const ta = document.getElementById('extext');
+  const fb = document.getElementById('exfb');
+  const modelBox = document.getElementById('exmodel');
+  ta.addEventListener('input', ()=>{ ST[idx].exText = ta.value; });
+  let finished = false;
+  function finish(){ if(!finished){ finished = true; done(); } }
+  function showModel(){ modelBox.classList.add('show'); }
+  document.getElementById('excheck').addEventListener('click', ()=>{
+    const raw = (ta.value||'').trim(), txt = raw.toLowerCase();
+    const words = raw ? raw.split(/\s+/).filter(Boolean).length : 0;
+    if(words < 12){ fb.className='exfb warn'; fb.innerHTML='Write a sentence or two in your own words first, as if you were talking to Frank.'; return; }
+    const core = c.explain.keyPoints.filter(k=>!k.optional);
+    const missing = core.filter(k=>!k.kw.some(w=>txt.includes(w)));
+    const optMiss = c.explain.keyPoints.filter(k=>k.optional && !k.kw.some(w=>txt.includes(w)));
+    if(missing.length===0){
+      fb.className='exfb ok';
+      fb.innerHTML = 'Well put. That covers the key ideas here.' + (optMiss.length ? ' One more you could add: '+optMiss[0].nudge : '');
+      showModel(); finish();
+    } else {
+      ST[idx].exTries++;
+      fb.className='exfb warn';
+      const hint = '<ul>'+missing.map(k=>'<li>'+k.nudge+'</li>').join('')+'</ul>';
+      if(ST[idx].exTries === 1){
+        fb.innerHTML = 'Good start. To make it clear for Frank, try to also:'+hint+'<span class="ask">Have another go, then check again.</span>';
+      } else {
+        fb.innerHTML = 'You are nearly there. It would still help Frank to:'+hint+'<span class="ask">Have a look at one way to put it, just below, and ask a tutor or someone else in the class how they would say it. Then revise and check again if you like.</span>';
+        showModel(); finish();
+      }
+    }
+  });
+}
+
+/* ---------------------------------------------------------------- wizard navigation (Previous / Next) */
+function showVariant(i, noScroll){
+  view = 'variant'; idx = i;
+  s1.hidden = true; s2.hidden = false; s3.hidden = true; wnav.hidden = false;
+  render();
+  if(!noScroll) s2.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function showNext(){
+  view = 'next';
+  s1.hidden = true; s2.hidden = true; s3.hidden = false; wnav.hidden = false;
+  if(!s3.dataset.rendered){ renderNext(); s3.dataset.rendered = '1'; }
+  updateNav();
+  s3.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function updateNav(){
+  const prev = document.getElementById('wprev');
+  const next = document.getElementById('wnext');
+  const pos = document.getElementById('wpos');
+  if(view === 'next'){
+    prev.hidden = false; prev.disabled = false;
+    prev.onclick = ()=> showVariant(CASES.length-1);
+    next.hidden = true;
+    pos.textContent = 'What happens next';
+  } else {
+    prev.hidden = false;
+    prev.disabled = (idx === 0);
+    prev.onclick = ()=>{ if(idx > 0) showVariant(idx-1); };
+    next.hidden = false;
+    if(idx < CASES.length-1){
+      next.textContent = 'Next variant →';
+      next.disabled = false;
+      next.onclick = ()=> showVariant(idx+1);
+      pos.textContent = '';
+    } else {
+      next.textContent = 'Next steps →';
+      const ready = ST.every(s=>!!s.pick);
+      next.disabled = !ready;
+      next.onclick = ()=>{ if(ready) showNext(); };
+      pos.textContent = ready ? '' : 'Make the final call on both variants to continue';
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- Stage 3: what happens next (MCQ) */
+function renderNext(){
+  document.getElementById('nextintro').innerHTML = NEXT.intro;
+  document.getElementById('nextq').textContent = NEXT.question;
+  const letters = ["A","B","C","D","E"];
+  document.getElementById('nextopts').innerHTML = NEXT.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="lt">${letters[i]}</span><span class="tx">${o.t}</span><span class="ck">&#10003;</span></button>`).join('');
+  const fb = document.getElementById('nextfb');
+  let done3 = false;
+  document.querySelectorAll('#nextopts .opt').forEach(b=>b.addEventListener('click', ()=>{
+    if(done3) return;
+    const o = NEXT.options[+b.dataset.i];
+    if(o.ok){
+      done3 = true;
+      document.querySelectorAll('#nextopts .opt').forEach(x=>{ x.disabled = true; if(x!==b) x.classList.add('tried'); });
+      b.classList.add('right'); b.classList.remove('tried');
+      fb.classList.remove('show'); fb.innerHTML = '';
+      document.getElementById('ansbadge3').classList.add('show');
+      const side = document.getElementById('s3side');
+      side.classList.add('why');
+      side.innerHTML = `<div class="sidehd">Why</div><div class="sidetx">${NEXT.why}</div>`;
+      banner.classList.add('show');
+    } else {
+      b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),320);
+      b.classList.add('tried');
+      fb.innerHTML = o.why + `<span class="tutor">Not quite. Talk it through with your tutor, or someone else in the class, then try again.</span>`;
+      fb.classList.add('show');
+    }
+  }));
+}
+
+/* Stage 1 (choose the test) removed: Frank's cardiomyopathy gene panel is a given in the scenario, so we open straight into reading and classifying the report. */
+showVariant(0, true);
+window.__ready = true;
+</script>
+</body>
+</html>
