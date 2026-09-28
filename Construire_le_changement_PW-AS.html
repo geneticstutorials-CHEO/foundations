@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Construire le changement : Prader-Willi et Angelman</title>
+<style>
+  :root{
+    --plum:#4C2759; --plumd:#35183F; --plum2:#6A3A6F; --plt:#CDB6E6;
+    --lav:#F5F2F6; --ink:#232323; --mute:#6E6E6E; --line:#E0DDE3; --card:#F3F3F5;
+    --on:#2E7D32; --onbg:#E6F2E6; --onbd:#C8E6C9; --miss:#B23B3B; --missbg:#FBEAEA;
+    --teal:#1C6E8C; --tealbg:#E3F0F5;
+    --pat:#2C5F86; --patbg:#E7EFF6; --matc:#9B2D63; --matbg:#F7E6EF;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:Calibri,"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--ink);
+    background:#FBFAFC;line-height:1.35;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 18px 60px}
+  header.top{background:linear-gradient(100deg,var(--plumd),var(--plum2));color:#fff;
+    border-radius:14px;padding:18px 22px;box-shadow:0 6px 20px rgba(53,24,63,.18)}
+  header.top h1{margin:0;font-size:25px}
+  header.top p{margin:6px 0 0;font-size:15px;color:#EADFF0}
+  h2.sec{font-size:13px;color:var(--plumd);letter-spacing:.6px;text-transform:uppercase;margin:18px 2px 8px}
+  h2.sec .prog{text-transform:none;letter-spacing:0;font-weight:normal;color:var(--mute);margin-left:8px}
+
+  /* case tabs */
+  .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  button.tab{font-family:inherit;cursor:pointer;border:1.5px solid var(--line);border-radius:12px;background:#fff;
+    padding:10px 8px;display:flex;align-items:center;justify-content:center;gap:9px;transition:.12s}
+  button.tab:hover{border-color:var(--plt)}
+  button.tab.active{outline:3px solid var(--plt);border-color:var(--plum)}
+  .tab .num{width:23px;height:23px;border-radius:50%;background:var(--plum);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:bold}
+  .tab.done .num{background:var(--on)}
+  .tab .tname{font-weight:bold;font-size:14.5px;color:var(--plumd)}
+  .tab .tsub{font-size:12px;color:var(--mute);font-weight:normal}
+
+  /* case card */
+  .repcard{margin-top:12px;background:#fff;border:1.5px solid var(--line);border-left:7px solid var(--plum);
+    border-radius:12px;padding:13px 16px}
+  .repcard .tag{font-size:11px;font-weight:bold;letter-spacing:.8px;color:var(--mute);text-transform:uppercase}
+  .repcard .story{font-size:14px;margin:6px 0 0}
+  .repcard .task{font-size:13px;color:var(--mute);margin:9px 0 0;border-top:1px dashed var(--line);padding-top:8px}
+  .repcard.as{border-left-color:var(--teal)}
+  .ways{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .way{font-size:12.5px;font-weight:bold;border-radius:16px;padding:4px 12px;background:var(--card);color:var(--mute);border:1.5px solid var(--line)}
+  .way.found{background:var(--onbg);color:var(--on);border-color:var(--onbd)}
+
+  /* build bench */
+  .bench{margin-top:12px;background:#FCFBFD;border:2px dashed #CFC7D6;border-radius:14px;padding:14px 12px 10px;
+    display:flex;gap:14px;flex-wrap:wrap;justify-content:center;min-height:360px;align-items:flex-start}
+  .ccard{border:1.5px solid var(--line);border-radius:13px;background:#fff;padding:9px 9px 8px;width:158px;
+    display:flex;flex-direction:column;align-items:center;position:relative;transition:box-shadow .12s;touch-action:none}
+  .ccard.dragging{box-shadow:0 10px 22px rgba(53,24,63,.25);opacity:.92;z-index:30}
+  .cap{font-weight:bold;font-size:13px;padding:3px 10px;border-radius:8px;cursor:grab;user-select:none;-webkit-user-select:none}
+  .cap.pat{background:var(--patbg);color:var(--pat)} .cap.mat{background:var(--matbg);color:var(--matc)}
+  .regionhit{cursor:pointer}
+  .regionhit:hover rect.rframe{stroke-width:2.6}
+  .genehit{cursor:pointer}
+  .genehit:hover rect.gcell{stroke-width:2.8}
+  .grp{width:100%;text-align:center;font-size:9.5px;font-weight:bold;letter-spacing:.7px;text-transform:uppercase;
+    color:#9A93A2;margin-top:7px;border-top:1px dashed var(--line);padding-top:5px}
+  .rbtn{font-family:inherit;width:100%;margin-top:5px;font-weight:bold;border-radius:8px;padding:4px 0;
+    font-size:11.5px;cursor:pointer;border:1.5px solid var(--line);background:#fff}
+  .rbtn.rdel{background:var(--missbg);border-color:#E4BEBE;color:var(--miss)}
+  .rbtn.rdel:hover{border-color:var(--miss)}
+  .rbtn.rimp{background:var(--tealbg);border-color:#BBD8E4;color:var(--teal)}
+  .rbtn.rimp:hover{border-color:var(--teal)}
+  .rbtn.rundo{background:var(--lav);border-color:var(--plt);color:var(--plumd)}
+  .rbtn.rundo:hover{border-color:var(--plum)}
+  .cbtns{display:flex;flex-direction:column;gap:5px;margin-top:4px;width:100%}
+  .cbtns button{font-family:inherit;font-size:11.5px;font-weight:bold;cursor:pointer;border:1.5px solid var(--line);
+    background:#fff;border-radius:8px;padding:4px 0;width:100%;color:var(--plum)}
+  .cbtns button:hover{background:var(--lav)}
+  .cbtns button.rm{color:var(--miss)}
+  .flag{font-size:10.5px;font-weight:bold;border-radius:14px;padding:2px 8px;margin-top:5px}
+  .flag.del{background:var(--missbg);color:var(--miss)} .flag.imp{background:var(--tealbg);color:var(--teal)}
+  .benchmsg{width:100%;text-align:center;color:#A99FB2;font-weight:bold;font-size:13.5px;padding:6px 0 0}
+
+  /* region action menu */
+  .menu{position:absolute;z-index:50;background:#fff;border:1.5px solid var(--plum);border-radius:11px;
+    box-shadow:0 10px 26px rgba(53,24,63,.28);padding:6px;display:none;width:240px}
+  .menu.show{display:block}
+  .menu .mhead{font-size:10.5px;font-weight:bold;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);padding:4px 9px 0}
+  .menu button{font-family:inherit;display:block;width:100%;text-align:left;font-size:12.5px;font-weight:bold;
+    border:1.5px solid var(--line);background:#fff;cursor:pointer;padding:9px 10px;border-radius:9px;color:var(--ink);margin-top:6px}
+  .menu button .g{display:inline-block;width:18px;text-align:center;margin-right:4px}
+  .menu button.mdel{background:var(--missbg);border-color:#E4BEBE;color:var(--miss)}
+  .menu button.mdel:hover{border-color:var(--miss)}
+  .menu button.mimp{background:var(--tealbg);border-color:#BBD8E4;color:var(--teal)}
+  .menu button.mimp:hover{border-color:var(--teal)}
+  .menu button.mundo{background:var(--lav);border-color:var(--plt);color:var(--plumd)}
+  .menu button.mundo:hover{border-color:var(--plum)}
+
+  /* your call selectors */
+  .call{margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px}
+  .call .clab{font-size:12.5px;font-weight:bold;color:var(--plumd);margin:4px 0 6px}
+  .selrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  button.selchip{font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer;border:1.5px solid var(--line);
+    background:#fff;color:var(--ink);border-radius:18px;padding:6px 15px;transition:.1s}
+  button.selchip:hover{border-color:var(--plt)}
+  button.selchip.on{background:var(--plum);border-color:var(--plum);color:#fff}
+
+  /* controls + result */
+  .ctr{margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  button.check{font-family:inherit;font-size:15px;font-weight:bold;cursor:pointer;border:none;border-radius:10px;
+    background:var(--plum);color:#fff;padding:10px 30px;box-shadow:0 4px 12px rgba(76,39,89,.3)}
+  button.check:hover{background:var(--plumd)}
+  button.ghost{font-family:inherit;font-size:13px;cursor:pointer;border:1.5px solid var(--line);
+    background:#fff;color:var(--plum);border-radius:9px;padding:8px 16px;font-weight:bold}
+  button.ghost:hover{background:var(--lav)}
+  .verdict{margin-top:12px;border-radius:12px;padding:12px 16px;font-size:14px;display:none;border:2px solid var(--line);background:var(--card)}
+  .verdict.show{display:block}
+  .verdict.ok{border-color:var(--on);background:var(--onbg)}
+  .verdict.no{border-color:var(--miss);background:var(--missbg)}
+  .verdict b.vh{display:block;font-size:15px;margin-bottom:3px}
+  .verdict.ok b.vh{color:var(--on)} .verdict.no b.vh{color:var(--miss)}
+  .verdict .freq{display:block;margin-top:7px;padding-top:7px;border-top:1px dashed var(--onbd);font-size:13.5px}
+  .verdict a.ext{display:block;margin-top:6px;font-size:13px;font-weight:bold;color:var(--plumd)}
+
+  .summary{display:none;margin-top:16px;border-radius:12px;padding:14px 18px;background:var(--onbg);
+    border:2px solid var(--on);font-size:14px;text-align:center}
+  .summary.show{display:block}
+  .summary b{color:var(--on)}
+  .foot{margin-top:22px;font-size:12px;color:var(--mute);text-align:center}
+  svg.chrom{display:block}
+</style>
+</head>
+<body>
+<svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs>
+  <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <rect width="7" height="7" fill="#ECECEC"/><line x1="0" y1="0" x2="0" y2="7" stroke="#D2D2D2" stroke-width="3.5"/>
+  </pattern>
+</defs></svg>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Construire le changement : Prader-Willi et Angelman</h1>
+    <p>Deux cas. Pour chaque phénotype, construisez les différents mécanismes qui pourraient y mener, puis nommez ce que vous avez construit.</p>
+  </header>
+
+  <h2 class="sec">Les cas <span class="prog" id="prog">mécanismes trouvés : 0 sur 6</span></h2>
+  <div class="tabs" id="tabs"></div>
+
+  <div id="repcard" class="repcard"></div>
+
+  <h2 class="sec">La table de construction</h2>
+  <div class="bench" id="bench"></div>
+  <div class="benchmsg">Utilisez les boutons rouges et sarcelle sous chaque copie, ou touchez un gène (PWS ou UBE3A), pour modifier la région 15q11.2-q13. Faites glisser une carte par son étiquette parentale pour la déplacer.</div>
+
+  <div class="call">
+    <div class="clab">Votre réponse : que cause cette construction?</div>
+    <div class="selrow" id="selResult"></div>
+    <div class="clab">Et comment s'appelle ce mécanisme?</div>
+    <div class="selrow" id="selMech"></div>
+  </div>
+
+  <div class="ctr">
+    <button class="check" id="check">Vérifier la construction</button>
+    <button class="ghost" id="reset">Rétablir la paire typique</button>
+  </div>
+  <div class="verdict" id="verdict"></div>
+
+  <div class="summary" id="summary"><b>Les six mécanismes ont été trouvés.</b> Trois mécanismes moléculaires produisent chaque syndrome, et la même règle vaut pour chacun : seule la perte de la copie ACTIVE cause un syndrome. Le syndrome de Prader-Willi est la perte de la contribution paternelle en 15q11.2-q13; le syndrome d'Angelman est la perte de UBE3A maternel. Même locus, parent opposé, et le mécanisme détermine la probabilité de récurrence, ce qui explique pourquoi les tests permettent de les distinguer.</div>
+
+  <div class="foot">Rien n'est enregistré ni noté ici. Tutorat III &middot; CHEO et Université d'Ottawa</div>
+</div>
+
+<div class="menu" id="menu"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- the two cases ----------
+  var CASES=[
+    { name:"Cas 1", syn:"pws", dx:"syndrome de Prader-Willi",
+      story:"Un nourrisson de sexe masculin né à terme présente une hypotonie néonatale marquée et une succion faible qui exige une alimentation assistée. À l'âge de trois ans, il a développé une hyperphagie avec un gain de poids rapide, et l'examen montre une petite taille, de petites mains et de petits pieds, un hypogonadisme et un retard global du développement." },
+    { name:"Cas 2", syn:"as", dx:"syndrome d'Angelman",
+      story:"Une fillette de trois ans est dirigée en consultation pour un retard global du développement et une absence de langage. L'examen montre une démarche ataxique à base élargie et une microcéphalie acquise, avec des crises épileptiques apparues au cours de la deuxième année de vie. Ses parents décrivent une humeur constamment joyeuse avec des rires fréquents et non provoqués." }
+  ];
+
+  // the three ways per syndrome: target builds (multiset; imprint ignored on deleted copies)
+  var WAYS={
+    pws:{ del:[{o:"pat",d:1,i:"pat"},{o:"mat",d:0,i:"mat"}],
+          upd:[{o:"mat",d:0,i:"mat"},{o:"mat",d:0,i:"mat"}],
+          imp:[{o:"pat",d:0,i:"mat"},{o:"mat",d:0,i:"mat"}] },
+    as:{  del:[{o:"mat",d:1,i:"mat"},{o:"pat",d:0,i:"pat"}],
+          upd:[{o:"pat",d:0,i:"pat"},{o:"pat",d:0,i:"pat"}],
+          imp:[{o:"mat",d:0,i:"pat"},{o:"pat",d:0,i:"pat"}] }
+  };
+  var MECHNAME={del:"une délétion",upd:"une disomie uniparentale (DUP)",imp:"un défaut d'empreinte"};
+  var FREQ={
+    pws:{ del:"Environ 70 personnes sur 100 ayant le syndrome de Prader-Willi ont ce mécanisme : la région délétée sur la copie du père.",
+          upd:"Environ 25 personnes sur 100 ayant le syndrome de Prader-Willi ont ce mécanisme : deux copies de la mère, aucune du père.",
+          imp:"Seulement environ 1 à 3 personnes sur 100 ayant le syndrome de Prader-Willi ont un défaut d'empreinte. C'est rare, mais la probabilité de récurrence varie selon le mécanisme, et c'est pourquoi les tests permettent de distinguer les trois." },
+    as:{  del:"Environ 70 personnes sur 100 ayant le syndrome d'Angelman ont ce mécanisme : la région délétée sur la copie de la mère.",
+          upd:"Environ 5 personnes sur 100 ayant le syndrome d'Angelman ont ce mécanisme : deux copies du père, aucune de la mère.",
+          imp:"Environ 3 personnes sur 100 ayant le syndrome d'Angelman ont un défaut d'empreinte. (10 autres sur 100 ont un changement dans le gène UBE3A lui-même, une voie que cette table ne permet pas de construire.)" }
+  };
+  var RESULTS=[["pws","Prader-Willi"],["as","Angelman"]];
+  var MECHS=[["del","Délétion"],["upd","DUP"],["imp","Défaut d'empreinte"]];
+
+  // ---------- state ----------
+  function typicalPair(){ return [ {o:"pat",d:0,i:"pat"}, {o:"mat",d:0,i:"mat"} ]; }
+  var builds=[typicalPair(),typicalPair()];
+  var found=[{del:false,upd:false,imp:false},{del:false,upd:false,imp:false}];
+  var cur=0;
+  var selResult=null, selMech=null;
+
+  // ---------- helpers ----------
+  function pwsOn(c){ return !c.d && c.i==="pat"; }
+  function ubeOn(c){ return !c.d && c.i==="mat"; }
+  function key(c){ return c.o+"|"+(c.d?1:0)+"|"+(c.d?"-":c.i); }
+  function sameSet(a,b){
+    if(a.length!==b.length) return false;
+    return a.map(key).sort().join(",")===b.map(key).sort().join(",");
+  }
+  function countFound(){ var n=0; found.forEach(function(f){ ["del","upd","imp"].forEach(function(m){ if(f[m]) n++; }); }); return n; }
+  function caseDone(i){ return found[i].del&&found[i].upd&&found[i].imp; }
+  function buildMech(b){ // which (syn,mech) does this exact build match, if any
+    for(var s in WAYS) for(var m in WAYS[s]) if(sameSet(b,WAYS[s][m])) return {syn:s,mech:m};
+    return null;
+  }
+
+  // ---------- svg chromosome ----------
+  function geneCell(y,h,label,on,gkey,sel){
+    var fill=on?"#E6F2E6":"url(#hatch)", stroke=on?"#2E7D32":"#C9C4CE", tcol=on?"#2E7D32":"#8A8A8A";
+    var sub=on?"exprimé":"silencieux";
+    var s='<g class="genehit" data-gene="'+gkey+'">';
+    if(sel) s+='<rect x="26.5" y="'+(y-3.5)+'" width="47" height="'+(h+7)+'" rx="9" fill="none" stroke="#4C2759" stroke-width="3"/>';
+    s+='<rect class="gcell" x="30" y="'+y+'" width="40" height="'+h+'" rx="6" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.6"/>'+
+      '<text x="50" y="'+(y+h/2-3)+'" text-anchor="middle" font-family="Calibri" font-size="12" font-weight="bold" fill="'+tcol+'">'+label+'</text>'+
+      '<text x="50" y="'+(y+h/2+11)+'" text-anchor="middle" font-family="Calibri" font-size="8.8" fill="'+tcol+'">'+sub+'</text>';
+    return s+'</g>';
+  }
+  function chromSVG(c,idx){
+    var body="#E9E9EC", edge="#B4AFBB";
+    var isSel = idx===menuIdx;
+    var g='<svg class="chrom" width="120" height="232" viewBox="0 0 100 210">';
+    g+='<rect x="24" y="8"  width="52" height="52"  rx="20" fill="'+body+'" stroke="'+edge+'" stroke-width="1.6"/>';
+    g+='<rect x="24" y="64" width="52" height="138" rx="20" fill="'+body+'" stroke="'+edge+'" stroke-width="1.6"/>';
+    g+='<rect x="38" y="58" width="24" height="10" fill="'+body+'"/>';
+    g+='<circle cx="23" cy="62" r="7" fill="#FBFAFC"/><circle cx="77" cy="62" r="7" fill="#FBFAFC"/>';
+    g+='<line x1="30" y1="30" x2="70" y2="30" stroke="#CFCAD6" stroke-width="2"/>';
+    g+='<line x1="30" y1="80" x2="70" y2="80" stroke="#CFCAD6" stroke-width="2"/>';
+    g+='<g class="regionhit" data-idx="'+idx+'">';
+    if(c.d){
+      g+='<rect class="rframe" x="26" y="96" width="48" height="104" rx="10" fill="'+(isSel?"#FDF4F4":"#FFFFFF")+'" stroke="#B23B3B" stroke-width="'+(isSel?2.8:1.8)+'" stroke-dasharray="5 4"/>';
+      g+='<text x="50" y="141" text-anchor="middle" font-family="Calibri" font-size="12" font-weight="bold" fill="#B23B3B">région</text>';
+      g+='<text x="50" y="157" text-anchor="middle" font-family="Calibri" font-size="12" font-weight="bold" fill="#B23B3B">délétée</text>';
+    } else {
+      var frame=(c.i!==c.o)?"#1C6E8C":"#4C2759";
+      g+='<rect class="rframe" x="26" y="96" width="48" height="104" rx="10" fill="'+(isSel?"#E5D8EF":"#EFE7F5")+'" stroke="'+frame+'" stroke-width="'+(isSel?2.8:1.6)+'"/>';
+      g+=geneCell(102,44,"PWS",pwsOn(c),"pws",isSel&&menuGene==="pws");
+      g+=geneCell(150,44,"UBE3A",ubeOn(c),"ube",isSel&&menuGene==="ube");
+      g+='<text x="50" y="207" text-anchor="middle" font-family="Calibri" font-size="8.5" fill="#8A8A8A">15q11.2-q13</text>';
+    }
+    g+='</g></svg>';
+    return g;
+  }
+
+  // ---------- render ----------
+  function esc(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function renderTabs(){
+    var h="";
+    for(var i=0;i<2;i++){
+      var n=0; ["del","upd","imp"].forEach(function(m){ if(found[i][m]) n++; });
+      h+='<button class="tab'+(i===cur?" active":"")+(caseDone(i)?" done":"")+'" data-t="'+i+'">'+
+        '<span class="num">'+(caseDone(i)?"&#10003;":(i+1))+'</span>'+
+        '<span class="tname">'+CASES[i].name+'</span>'+
+        '<span class="tsub">'+n+' mécanisme'+(n>1?'s':'')+' sur 3</span></button>';
+    }
+    document.getElementById("tabs").innerHTML=h;
+    document.getElementById("prog").textContent="mécanismes trouvés : "+countFound()+" sur 6";
+    document.getElementById("summary").className="summary"+(countFound()===6?" show":"");
+  }
+  function renderReport(){
+    var r=CASES[cur], f=found[cur];
+    var order=["del","upd","imp"];
+    var ways="", wn=1;
+    // show found ways in fixed slots without naming the unfound ones
+    var foundList=order.filter(function(m){return f[m];});
+    for(var j=0;j<3;j++){
+      if(j<foundList.length) ways+='<span class="way found">&#10003; '+MECHNAME[foundList[j]].charAt(0).toUpperCase()+MECHNAME[foundList[j]].slice(1)+'</span>';
+      else ways+='<span class="way">Mécanisme '+(j+1)+' : pas encore trouvé</span>';
+    }
+    var el=document.getElementById("repcard");
+    el.className="repcard"+(r.syn==="as"?" as":"");
+    el.innerHTML='<div class="tag">'+r.name+'</div>'+
+      '<p class="story">'+esc(r.story)+'</p>'+
+      '<p class="task">Construisez les différentes versions de la paire de chromosomes 15 qui pourraient mener à ce phénotype, un mécanisme à la fois. Donnez vos deux réponses sous la table, puis appuyez sur Vérifier.</p>'+
+      '<div class="ways">'+ways+'</div>';
+  }
+  function renderBench(){
+    var b=builds[cur], h="";
+    if(b.length===0){ h='<div class="benchmsg">Il ne reste aucun chromosome 15. Une cellule a besoin de sa paire : appuyez sur Rétablir la paire typique.</div>'; }
+    for(var i=0;i<b.length;i++){
+      var c=b[i];
+      var cap=c.o==="pat"?'<span class="cap pat" data-idx="'+i+'">&#9794; Du père</span>':'<span class="cap mat" data-idx="'+i+'">&#9792; De la mère</span>';
+      var flags="";
+      if(c.d) flags+='<span class="flag del">région délétée</span>';
+      else if(c.i!==c.o) flags+='<span class="flag imp">erreur d\'empreinte : type '+(c.i==="mat"?"mère":"père")+'</span>';
+      var regbtns='';
+      if(c.d){ regbtns='<button class="rbtn rundo" data-act="rrestore" data-idx="'+i+'">&#8634; Rétablir</button>'; }
+      else {
+        regbtns='<button class="rbtn rdel" data-act="rdel" data-idx="'+i+'">&#10005; Déléter</button>';
+        if(c.i===c.o) regbtns+='<button class="rbtn rimp" data-act="rimp" data-idx="'+i+'">&#8644; Erreur d\'empreinte</button>';
+        else regbtns+='<button class="rbtn rundo" data-act="runimp" data-idx="'+i+'">&#8634; Annuler l\'erreur d\'empreinte</button>';
+      }
+      h+='<div class="ccard" data-idx="'+i+'">'+cap+chromSVG(c,i)+flags+
+        '<div class="grp">Région 15q11.2-q13</div>'+regbtns+
+        '<div class="grp">Chromosome entier</div>'+
+        '<div class="cbtns"><button data-act="dup" data-idx="'+i+'">Dupliquer</button>'+
+        '<button class="rm" data-act="rm" data-idx="'+i+'">Retirer</button></div></div>';
+    }
+    document.getElementById("bench").innerHTML=h;
+  }
+  function renderCalls(){
+    var h="";
+    RESULTS.forEach(function(o){ h+='<button class="selchip'+(selResult===o[0]?" on":"")+'" data-res="'+o[0]+'">'+o[1]+'</button>'; });
+    document.getElementById("selResult").innerHTML=h;
+    h="";
+    MECHS.forEach(function(o){ h+='<button class="selchip'+(selMech===o[0]?" on":"")+'" data-mech="'+o[0]+'">'+o[1]+'</button>'; });
+    document.getElementById("selMech").innerHTML=h;
+  }
+  function renderAll(){ hideMenu(false); renderTabs(); renderReport(); renderBench(); renderCalls(); }
+
+  // ---------- verdict ----------
+  function show(cls,head,body){
+    var v=document.getElementById("verdict");
+    v.className="verdict show "+cls;
+    v.innerHTML='<b class="vh">'+head+"</b>"+body;
+  }
+  function clearVerdict(){ document.getElementById("verdict").className="verdict"; }
+
+  var misses=0;
+  function hint(what,why){
+    misses++;
+    if(misses>=2){ show("no","Pas tout à fait.",what+" Discutez-en avec un autre étudiant, ou demandez à votre tuteur."); }
+    else show("no","Pas tout à fait.",what+" Indice : "+why);
+  }
+  function check(){
+    var cs=CASES[cur], b=builds[cur];
+    if(!selResult||!selMech){
+      show("no","Donnez d'abord vos deux réponses.","Construisez la paire, puis dites ce que votre construction cause et comment s'appelle le mécanisme. La vérification lit les trois ensemble.");
+      return;
+    }
+    // build-level checks
+    if(b.length!==2){
+      hint(b.length===0?"Votre construction ne contient aucune copie du chromosome 15.":"Votre construction contient "+b.length+" "+(b.length===1?"copie":"copies")+" du chromosome 15.","une cellule en a exactement deux. "+(b.length===0?"Appuyez sur Rétablir la paire typique.":b.length<2?"Dupliquez une copie pour revenir à une paire.":"Retirez les copies en trop."));
+      return;
+    }
+    var netP=b.some(pwsOn), netU=b.some(ubeOn);
+    var actual = (netP&&netU)?"typ":(!netP&&netU)?"pws":(netP&&!netU)?"as":"none";
+    if(actual==="none"){
+      hint("Votre construction perd les deux contributions en même temps.","chaque mécanisme est un seul changement sur une seule copie. Remettez une contribution.");
+      return;
+    }
+    if(sameSet(b,typicalPair())){
+      hint("Rien n'a encore été changé.","décidez de quoi il s'agit dans cette présentation, puis retirez la seule contribution active qui la causerait.");
+      return;
+    }
+    var m=buildMech(b);
+    if(actual==="typ"){
+      hint("Votre construction se lit toujours comme typique : les deux contributions sont exprimées.","les changements que vous avez faits n'ont pas rendu silencieuse ni retiré une copie active. Rétablissez la paire typique et modifiez la copie qui est ACTIVE pour ce syndrome.");
+      return;
+    }
+    // their result call must match what the build actually does
+    if(selResult!==actual){
+      hint("Votre réponse sur ce que cette construction cause est incorrecte.","regardez quels gènes affichent encore exprimé sur la table, et sur la copie de quel parent.");
+      return;
+    }
+    if(actual!==cs.syn){
+      hint("Votre construction ne correspond pas à ce cas.","relisez la présentation et demandez-vous quelle contribution parentale est perdue ici. Même locus, parent opposé.");
+      return;
+    }
+    if(!m){
+      hint("Votre construction fait plus de changements qu'un seul mécanisme.","chaque mécanisme est UN seul changement sur UNE seule copie. Rétablissez la paire typique et faites seulement ce changement.");
+      return;
+    }
+    if(selMech!==m.mech){
+      hint("Votre réponse sur le mécanisme ne nomme pas ce que vous avez fait.","regardez la table : avez-vous retiré une région, changé l'empreinte que porte une copie, ou changé quel parent a fourni les copies?");
+      return;
+    }
+    if(found[cur][m.mech]){
+      show("no","Déjà trouvé.","Vous avez déjà montré le "+cs.dx+" par "+MECHNAME[m.mech]+". Réinitialisez la table et trouvez un autre mécanisme.");
+      return;
+    }
+    found[cur][m.mech]=true; misses=0;
+    var left=3-["del","upd","imp"].filter(function(k){return found[cur][k];}).length;
+    var nextLine = left>0 ? " Réinitialisez la table et trouvez "+(left===2?"deux autres mécanismes":"un autre mécanisme")+"." :
+      (countFound()===6 ? "" : " Voilà les trois mécanismes : passez au "+CASES[1-cur].name+".");
+    var more = cs.syn==="pws" ? '<a class="ext" href="https://www.ncbi.nlm.nih.gov/books/NBK1330/" target="_blank" rel="noopener">Pour en savoir plus : GeneReviews, syndrome de Prader-Willi</a>' : "";
+    show("ok","Trouvé : le "+cs.dx+" par "+MECHNAME[m.mech]+".",
+      '<span class="freq">'+esc(FREQ[cs.syn][m.mech])+'</span>'+more+esc(nextLine));
+    selResult=null; selMech=null;
+    renderTabs(); renderReport(); renderCalls();
+  }
+
+  // ---------- region menu ----------
+  var menuIdx=-1, menuGene=null;
+  function hideMenu(rerender){
+    document.getElementById("menu").className="menu";
+    if(menuIdx>=0){ menuIdx=-1; menuGene=null; if(rerender!==false) renderBench(); }
+  }
+  function openMenu(idx,gene){
+    menuIdx=idx; menuGene=gene||null;
+    renderBench();
+    var c=builds[cur][idx], m=document.getElementById("menu"), h="";
+    var parent=(c.o==="pat"?"du père":"de la mère");
+    var what = gene==="pws"?"les gènes PWS":(gene==="ube"?"UBE3A":"la région 15q11.2-q13");
+    h+='<div class="mhead">'+what+" &middot; copie "+parent+"</div>";
+    if(c.d){
+      h+='<button class="mundo" data-m="restore"><span class="g">&#8634;</span>Rétablir la région</button>';
+    } else {
+      h+='<button class="mdel" data-m="del"><span class="g">&#10005;</span>Déléter la région (les deux gènes perdus sur cette copie)</button>';
+      if(c.i===c.o) h+='<button class="mimp" data-m="imp"><span class="g">&#8644;</span>Erreur d\'empreinte : donner à cette copie une empreinte de type '+(c.o==="pat"?"mère":"père")+'</button>';
+      else h+='<button class="mundo" data-m="unimp"><span class="g">&#8634;</span>Annuler l\'erreur d\'empreinte</button>';
+    }
+    m.innerHTML=h; m.className="menu show";
+    var card=document.querySelector('.ccard[data-idx="'+idx+'"]');
+    var cr=card?card.getBoundingClientRect():{left:20,right:260,bottom:400,width:158};
+    var g=document.querySelector('.regionhit[data-idx="'+idx+'"]');
+    var rr=g?g.getBoundingClientRect():cr;
+    var mw=240, mh=m.offsetHeight||150, px, py;
+    if(cr.right+8+mw <= window.innerWidth-8){ px=cr.right+8; py=rr.top+window.scrollY-10; }
+    else if(cr.left-mw-8 >= 8){ px=cr.left-mw-8; py=rr.top+window.scrollY-10; }
+    else { px=Math.min(Math.max(8,cr.left+cr.width/2-mw/2), window.innerWidth-mw-8); py=cr.bottom+window.scrollY+6; }
+    var maxY=document.documentElement.scrollHeight-mh-8;
+    if(py>maxY) py=maxY; if(py<8) py=8;
+    m.style.left=px+"px"; m.style.top=py+"px";
+  }
+
+  // ---------- events ----------
+  document.getElementById("tabs").addEventListener("click",function(e){
+    var t=e.target.closest(".tab"); if(!t) return;
+    cur=+t.getAttribute("data-t"); selResult=null; selMech=null; misses=0; clearVerdict(); renderAll();
+  });
+  document.getElementById("bench").addEventListener("click",function(e){
+    var gh=e.target.closest(".genehit");
+    if(gh){ var rg=gh.closest(".regionhit");
+      openMenu(+rg.getAttribute("data-idx"), gh.getAttribute("data-gene")); return; }
+    var g=e.target.closest(".regionhit");
+    if(g){ openMenu(+g.getAttribute("data-idx"), null); return; }
+    var btn=e.target.closest("button[data-act]"); if(!btn) return;
+    var i=+btn.getAttribute("data-idx"), b=builds[cur];
+    var a=btn.getAttribute("data-act");
+    if(a==="rdel"||a==="rrestore"||a==="rimp"||a==="runimp"){
+      var cc=b[i];
+      if(a==="rdel") cc.d=1;
+      if(a==="rrestore") cc.d=0;
+      if(a==="rimp") cc.i=(cc.o==="pat")?"mat":"pat";
+      if(a==="runimp") cc.i=cc.o;
+      clearVerdict(); hideMenu(false); renderBench(); return;
+    }
+    if(a==="dup"){
+      if(b.length>=4){ show("no","Cela fait beaucoup de copies.","Quatre, c'est plus que ce dont n'importe quel mécanisme a besoin. Retirez-en une avant d'en ajouter d'autres."); return; }
+      var c=b[i]; b.splice(i+1,0,{o:c.o,d:c.d,i:c.i});
+    } else { b.splice(i,1); }
+    clearVerdict(); hideMenu(false); renderBench();
+  });
+  document.getElementById("menu").addEventListener("click",function(e){
+    var btn=e.target.closest("button[data-m]"); if(!btn||menuIdx<0) return;
+    var c=builds[cur][menuIdx], act=btn.getAttribute("data-m");
+    if(act==="del") c.d=1;
+    if(act==="restore") c.d=0;
+    if(act==="imp") c.i=(c.o==="pat")?"mat":"pat";
+    if(act==="unimp") c.i=c.o;
+    clearVerdict(); hideMenu(false); renderBench();
+  });
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".menu") && !e.target.closest(".regionhit") && !e.target.closest(".rbtn")) hideMenu();
+  },true);
+  document.getElementById("selResult").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-res]"); if(!b) return;
+    selResult=b.getAttribute("data-res"); clearVerdict(); renderCalls();
+  });
+  document.getElementById("selMech").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-mech]"); if(!b) return;
+    selMech=b.getAttribute("data-mech"); clearVerdict(); renderCalls();
+  });
+  document.getElementById("check").addEventListener("click",check);
+  document.getElementById("reset").addEventListener("click",function(){
+    builds[cur]=typicalPair(); selResult=null; selMech=null; misses=0; clearVerdict(); renderAll();
+  });
+
+  // ---------- drag to move (pointer-based reorder) ----------
+  var drag=null;
+  document.getElementById("bench").addEventListener("pointerdown",function(e){
+    var cap=e.target.closest(".cap"); if(!cap) return;
+    var card=cap.closest(".ccard"); if(!card) return;
+    e.preventDefault();
+    drag={idx:+card.getAttribute("data-idx"), card:card, x:e.clientX, y:e.clientY, moved:false};
+    card.setPointerCapture&&cap.setPointerCapture(e.pointerId);
+  });
+  document.addEventListener("pointermove",function(e){
+    if(!drag) return;
+    var dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    if(!drag.moved && Math.abs(dx)+Math.abs(dy)<6) return;
+    if(!drag.moved) hideMenu(false);
+    drag.moved=true;
+    drag.card.classList.add("dragging");
+    drag.card.style.transform="translate("+dx+"px,"+dy+"px)";
+    var cards=[].slice.call(document.querySelectorAll("#bench .ccard"));
+    var over=cards.find(function(c){
+      if(c===drag.card) return false;
+      var r=c.getBoundingClientRect();
+      return e.clientX>r.left&&e.clientX<r.right&&e.clientY>r.top&&e.clientY<r.bottom;
+    });
+    if(over){
+      var b=builds[cur], from=drag.idx, to=+over.getAttribute("data-idx");
+      var item=b.splice(from,1)[0]; b.splice(to,0,item);
+      renderBench();
+      var nc=document.querySelector('#bench .ccard[data-idx="'+to+'"]');
+      drag.card=nc; drag.idx=to; drag.x=e.clientX; drag.y=e.clientY;
+      nc.classList.add("dragging");
+    }
+  });
+  function endDrag(){
+    if(!drag) return;
+    drag.card.classList.remove("dragging");
+    drag.card.style.transform="";
+    drag=null;
+  }
+  document.addEventListener("pointerup",endDrag);
+  document.addEventListener("pointercancel",endDrag);
+
+  // ---------- go ----------
+  renderAll();
+})();
+</script>
+</body>
+</html>
