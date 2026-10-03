@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activities · Genetics Tutorials: Foundations</title>
+<meta name="description" content="Every activity from the genetics sessions, in one place. University of Ottawa Faculty of Medicine, with CHEO.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plum:#4C2759;
+  --purple:#6A3A6F;
+  --purple-lift:#8b5e93;
+  --tint:#F5F2F6;
+  --tint-2:#EDE9EE;
+  --line:#E3DAEA;
+  --line-2:#e6e4e8;
+  --ink:#1A1A1A;
+  --body:#3a3740;
+  --muted:#6E6E6E;
+  --sans:'Mulish','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;font-family:var(--sans);color:var(--ink);background:#fff;
+  -webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5;
+}
+a{color:var(--purple)}
+button{font:inherit}
+:focus-visible{outline:3px solid var(--purple-lift);outline-offset:2px;border-radius:3px}
+
+.wrap{max-width:720px;margin:0 auto;padding:0 20px 64px}
+
+/* ---------------- header ---------------- */
+.top{background:var(--plum);color:#fff;padding:26px 0 26px;margin-bottom:30px}
+.top .wrap{padding-bottom:0}
+.eyebrow{
+  font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:#d9c8e2;margin:0 0 7px;
+}
+h1{font-size:32px;line-height:1.15;font-weight:800;margin:0 0 8px;letter-spacing:-.01em}
+.lede{font-size:15px;color:#ece4f0;margin:0;max-width:46ch}
+
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.lang{
+  background:transparent;color:#e7dcec;border:1.5px solid #8a6d97;
+  padding:6px 15px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;
+}
+.lang:hover{border-color:#c3a8cd;color:#fff}
+.lang[aria-pressed="true"]{background:#fff;color:var(--plum);border-color:#fff}
+.detail{
+  background:transparent;color:#cbb4d5;border:0;padding:6px 2px;margin-left:6px;
+  font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px;
+}
+.detail:hover{color:#fff}
+
+/* ---------------- sessions ---------------- */
+.session{margin-bottom:26px}
+.session h2{
+  font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 10px;
+}
+.tiles{display:grid;gap:9px}
+
+/* ---------------- tiles ---------------- */
+.tile{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 15px;border:1px solid var(--line);border-radius:12px;
+  background:#fff;text-decoration:none;color:inherit;
+}
+.tile:hover{border-color:var(--purple-lift);background:var(--tint)}
+.ico{
+  flex:0 0 auto;width:46px;height:46px;border-radius:11px;
+  background:var(--tint-2);color:var(--plum);display:grid;place-items:center;
+}
+.ico svg{
+  width:27px;height:27px;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+}
+.ico svg .solid{fill:currentColor;stroke:none}
+.txt{min-width:0}
+.tname{font-weight:700;font-size:16px;color:var(--plum);line-height:1.28}
+.tdesc{display:none;font-size:14px;color:var(--body);margin-top:6px}
+body.show-desc .tdesc{display:block}
+.chev{margin-left:auto;flex:0 0 auto;color:var(--purple-lift)}
+
+/* ---------------- footer ---------------- */
+.foot{
+  border-top:1px solid var(--line-2);margin-top:4px;padding-top:18px;
+  font-size:13px;color:var(--muted);
+}
+.foot a{font-weight:600}
+
+/* ---------------- language switching ---------------- */
+[data-lang="en"] [lang="fr"]{display:none}
+[data-lang="fr"] [lang="en"]{display:none}
+
+@media (max-width:560px){
+  h1{font-size:27px}
+  .top{padding:20px 0 22px;margin-bottom:24px}
+  .tname{font-size:15.5px}
+  .ico{width:42px;height:42px}
+  .ico svg{width:25px;height:25px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div lang="en">
+      <p class="eyebrow">Genetics Content</p>
+      <h1>Activities</h1>
+      <p class="lede">Every activity from the genetics sessions. Pick one to open it.</p>
+    </div>
+    <div lang="fr">
+      <p class="eyebrow">Contenu de génétique</p>
+      <h1>Activités</h1>
+      <p class="lede">Toutes les activités des séances de génétique. Choisissez-en une pour l'ouvrir.</p>
+    </div>
+    <div class="controls">
+      <button class="lang" type="button" data-set="en" aria-pressed="true">English</button>
+      <button class="lang" type="button" data-set="fr" aria-pressed="false">Français</button>
+      <button class="detail" type="button" id="detailBtn" aria-pressed="false">
+        <span lang="en">Show what each one was used for</span>
+        <span lang="fr">Afficher à quoi chacune a servi</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+<!-- ============================ ENGLISH ============================ -->
+<div lang="en">
+
+  <section class="session">
+    <h2>Tutorial I</h2>
+    <div class="tiles">
+      <a class="tile" href="buildthechangechromosome.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3.2c-1.6 2.6-1.6 4.8 1.6 7.8-3.2 3-3.2 5.2-1.6 7.8"/><path d="M15.5 3.2c1.6 2.6 1.6 4.8-1.6 7.8 3.2 3 3.2 5.2 1.6 7.8"/><path d="M9.4 11h5.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">Build the change: Chromosome</span>
+          <span class="tdesc">Five real cases. Learners read the case and the lab report, built the chromosome the result described, classified it, then translated the report for the patient.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>Tutorial II</h2>
+    <div class="tiles">
+      <a class="tile" href="Genetics_Tutorial_II_Build_the_Change_Gene.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3c0 4 8 5 8 9s-8 5-8 9"/><path d="M16 3c0 4-8 5-8 9s8 5 8 9"/><path d="M9.6 6.8h4.8M8.2 12h7.6M9.6 17.2h4.8"/></svg></span>
+        <span class="txt">
+          <span class="tname">Build the change: Gene</span>
+          <span class="tdesc">Learners edited the sequence one base at a time until it matched the report, watching the amino acids change underneath, then classified the variant.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+      <a class="tile" href="Genetics_Tutorial_II_Frank_Case.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3S4.8 15.6 4.8 10.6A3.9 3.9 0 0 1 12 8.3a3.9 3.9 0 0 1 7.2 2.3c0 5-7.2 9.7-7.2 9.7z"/><path d="M5.4 12.3h3l1.5-2.6 2.1 4.4 1.4-2.4h5.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">Frank's case</span>
+          <span class="tdesc">Frank is 42 with hypertrophic cardiomyopathy. Learners weighed the evidence for each variant, classified them, then worked out who else in the family was tested.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>Tutorial III</h2>
+    <div class="tiles">
+      <a class="tile" href="Build_the_Change_PW-AS.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="solid" x="4.2" y="4" width="5.6" height="16" rx="2.8"/><rect x="14.2" y="4" width="5.6" height="16" rx="2.8"/><path d="M15 18.4 19 5.6"/></svg></span>
+        <span class="txt">
+          <span class="tname">Build the change: Prader-Willi and Angelman</span>
+          <span class="tdesc">Learners built the six mechanisms in the 15q11.2-q13 region that cause the two syndromes, which is what shows why only loss of the active copy matters.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>From Karyotype to Genome</h2>
+    <div class="tiles">
+      <a class="tile" href="In_clinic_choose_the_test.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.2" y="4" width="13" height="9" rx="2.2"/><path d="M6.4 13v3.2L9.8 13"/><rect x="8.8" y="10.4" width="13" height="9" rx="2.2"/><path d="M17.6 19.4v3.2l-3.4-3.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">In clinic: choose the test</span>
+          <span class="tdesc">Learners saw five patients, took a history from each, chose the test that answered that patient's question, then explained it back in plain words.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+      <a class="tile" href="Reading_the_results.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 3h8.3l4 4v6.1"/><path d="M5.2 3A1.8 1.8 0 0 0 3.4 4.8v14.4A1.8 1.8 0 0 0 5.2 21h5.1"/><path d="M13.3 3v4.2h4.2"/><path d="M6.6 9.6h6M6.6 12.8h4.2"/><circle cx="16.4" cy="16.6" r="3.4"/><path d="m18.9 19.1 2.3 2.3"/></svg></span>
+        <span class="txt">
+          <span class="tname">Interpreting results</span>
+          <span class="tdesc">Leah's report came back with a variant of uncertain significance. Learners said it to her in plain words, then saw what changed when it was reclassified.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>GNDA</h2>
+    <div class="tiles">
+      <a class="tile" href="https://docs.google.com/forms/d/e/1FAIpQLSc8N_eWeivXpd233czwUVm1zdFOWXJgOMuryl8-MrzeKSptXw/viewform" target="_blank" rel="noopener">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.2v16"/><path d="M6.6 20.2h10.8"/><path d="M4 8h16"/><path d="M4 8 1.7 13a2.6 2.6 0 0 0 4.6 0z"/><path d="M20 8l2.3 5a2.6 2.6 0 0 1-4.6 0z"/></svg></span>
+        <span class="txt">
+          <span class="tname">Case study 1: BRCA1/2 and insurance</span>
+          <span class="tdesc">A clinical scenario answered in a form. Learners applied the Genetic Non-Discrimination Act to a real situation and found where its protection stops.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>
+      </a>
+      <a class="tile" href="https://docs.google.com/drawings/d/1SwDsOhpkz8WSGgbc39-PhEFMxMmP7LwDuE8mqcsgJKk/edit" target="_blank" rel="noopener">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="3.8" width="18.8" height="13" rx="2"/><path d="M12 16.8v3.4"/><path d="M6.6 9.6c2-1.6 3.6 2 5.6.4s3.4 1 4.9-1"/></svg></span>
+        <span class="txt">
+          <span class="tname">Prenatal screening and diagnosis of Down syndrome: ethical principles</span>
+          <span class="tdesc">A shared whiteboard the whole room wrote on at once, mapping how autonomy, informed consent and non-maleficence pull against each other.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <p class="foot">
+    Slide decks, objectives and pre-work for each session are on the
+    <a href="./">main course site</a>.<br>
+    Genetics Tutorials: Foundations · University of Ottawa Faculty of Medicine, with CHEO
+  </p>
+
+</div>
+
+<!-- ============================ FRANÇAIS ============================ -->
+<div lang="fr">
+
+  <section class="session">
+    <h2>Tutorat I</h2>
+    <div class="tiles">
+      <a class="tile" href="Construire_le_changement_chromosome_FR.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3.2c-1.6 2.6-1.6 4.8 1.6 7.8-3.2 3-3.2 5.2-1.6 7.8"/><path d="M15.5 3.2c1.6 2.6 1.6 4.8-1.6 7.8 3.2 3 3.2 5.2 1.6 7.8"/><path d="M9.4 11h5.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">Construire le changement&nbsp;: chromosome</span>
+          <span class="tdesc">Cinq cas réels. Les étudiants ont lu le cas et le rapport, construit le chromosome décrit par le résultat, l'ont classé, puis ont traduit le rapport pour la patiente ou le patient.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>Tutorat II</h2>
+    <div class="tiles">
+      <a class="tile" href="Genetics_Tutorial_II_Build_the_Change_Gene_FR.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3c0 4 8 5 8 9s-8 5-8 9"/><path d="M16 3c0 4-8 5-8 9s8 5 8 9"/><path d="M9.6 6.8h4.8M8.2 12h7.6M9.6 17.2h4.8"/></svg></span>
+        <span class="txt">
+          <span class="tname">Construire le changement&nbsp;: gène</span>
+          <span class="tdesc">Les étudiants ont modifié la séquence une base à la fois jusqu'à ce qu'elle corresponde au rapport, en voyant les acides aminés changer, puis ont classé le variant.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+      <a class="tile" href="Genetics_Tutorial_II_Frank_Case_FR.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3S4.8 15.6 4.8 10.6A3.9 3.9 0 0 1 12 8.3a3.9 3.9 0 0 1 7.2 2.3c0 5-7.2 9.7-7.2 9.7z"/><path d="M5.4 12.3h3l1.5-2.6 2.1 4.4 1.4-2.4h5.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">Cas de Frank</span>
+          <span class="tdesc">Frank a 42 ans et une cardiomyopathie hypertrophique. Les étudiants ont pesé les preuves pour chaque variant, les ont classés, puis ont déterminé qui d'autre serait testé.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>Tutorat III</h2>
+    <div class="tiles">
+      <a class="tile" href="Construire_le_changement_PW-AS.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="solid" x="4.2" y="4" width="5.6" height="16" rx="2.8"/><rect x="14.2" y="4" width="5.6" height="16" rx="2.8"/><path d="M15 18.4 19 5.6"/></svg></span>
+        <span class="txt">
+          <span class="tname">Construire le changement&nbsp;: Prader-Willi et Angelman</span>
+          <span class="tdesc">Les étudiants ont construit les six mécanismes de la région 15q11.2-q13 qui causent les deux syndromes, ce qui montre pourquoi seule la perte de la copie active compte.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>Du caryotype au génome</h2>
+    <div class="tiles">
+      <a class="tile" href="En_clinique_choisir_le_test.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.2" y="4" width="13" height="9" rx="2.2"/><path d="M6.4 13v3.2L9.8 13"/><rect x="8.8" y="10.4" width="13" height="9" rx="2.2"/><path d="M17.6 19.4v3.2l-3.4-3.2"/></svg></span>
+        <span class="txt">
+          <span class="tname">En clinique&nbsp;: choisir le test</span>
+          <span class="tdesc">Les étudiants ont vu cinq personnes, fait une anamnèse pour chacune, choisi le test qui répondait à sa question, puis l'ont expliqué en mots simples.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+      <a class="tile" href="Interpreter_les_resultats.html">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 3h8.3l4 4v6.1"/><path d="M5.2 3A1.8 1.8 0 0 0 3.4 4.8v14.4A1.8 1.8 0 0 0 5.2 21h5.1"/><path d="M13.3 3v4.2h4.2"/><path d="M6.6 9.6h6M6.6 12.8h4.2"/><circle cx="16.4" cy="16.6" r="3.4"/><path d="m18.9 19.1 2.3 2.3"/></svg></span>
+        <span class="txt">
+          <span class="tname">Interpréter les résultats</span>
+          <span class="tdesc">Le rapport de Leah est revenu avec un variant de signification indéterminée. Les étudiants le lui ont dit en mots simples, puis ont vu ce qui changeait après la reclassification.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="session">
+    <h2>GNDA</h2>
+    <div class="tiles">
+      <a class="tile" href="https://docs.google.com/forms/d/e/1FAIpQLSfN1OeXKIb0OEVxmFmCtU7ChApsjsI7kNOS8NzVHLRKDklJcQ/viewform" target="_blank" rel="noopener">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.2v16"/><path d="M6.6 20.2h10.8"/><path d="M4 8h16"/><path d="M4 8 1.7 13a2.6 2.6 0 0 0 4.6 0z"/><path d="M20 8l2.3 5a2.6 2.6 0 0 1-4.6 0z"/></svg></span>
+        <span class="txt">
+          <span class="tname">Étude de cas 1&nbsp;: BRCA1/2 et assurance</span>
+          <span class="tdesc">Une situation clinique à laquelle les étudiants ont répondu dans un formulaire. Ils ont appliqué la Loi sur la non-discrimination génétique et trouvé où sa protection s'arrête.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>
+      </a>
+      <a class="tile" href="https://docs.google.com/drawings/d/1Lun1BH8DcdD5QS-aZvjdqhBepv8zu2V9oSDeD8xSRZA/edit" target="_blank" rel="noopener">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="3.8" width="18.8" height="13" rx="2"/><path d="M12 16.8v3.4"/><path d="M6.6 9.6c2-1.6 3.6 2 5.6.4s3.4 1 4.9-1"/></svg></span>
+        <span class="txt">
+          <span class="tname">Dépistage et diagnostic prénatals de la trisomie 21&nbsp;: principes éthiques</span>
+          <span class="tdesc">Un tableau blanc sur lequel tout le groupe a écrit en même temps, pour cartographier l'opposition entre autonomie, consentement éclairé et non-malfaisance.</span>
+        </span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <p class="foot">
+    Les diaporamas, les objectifs et le travail préparatoire de chaque séance se trouvent sur le
+    <a href="./">site du cours</a>.<br>
+    Genetics Tutorials: Foundations · Université d'Ottawa, Faculté de médecine, avec le CHEO
+  </p>
+
+</div>
+
+</main>
+
+<script>
+(function(){
+  var TITLES = {
+    en: "Activities · Genetics Tutorials: Foundations",
+    fr: "Activités · Genetics Tutorials: Foundations"
+  };
+  var buttons = document.querySelectorAll(".lang");
+
+  function setLang(code){
+    if (code !== "fr") code = "en";
+    document.documentElement.setAttribute("data-lang", code);
+    document.documentElement.setAttribute("lang", code);
+    document.title = TITLES[code];
+    buttons.forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.set === code ? "true" : "false");
+    });
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener("click", function(){
+      setLang(b.dataset.set);
+      /* Keep the choice in the address bar so a French QR code can point
+         straight at this page with #fr on the end and land in French. */
+      history.replaceState(null, "", b.dataset.set === "fr" ? "#fr" : location.pathname);
+    });
+  });
+
+  /* A QR code ending in #fr opens the page in French. */
+  setLang(location.hash.replace("#","").toLowerCase() === "fr" ? "fr" : "en");
+
+  /* The one-line descriptions stay hidden until someone asks for them. */
+  var detailBtn = document.getElementById("detailBtn");
+  detailBtn.addEventListener("click", function(){
+    var on = document.body.classList.toggle("show-desc");
+    detailBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    detailBtn.querySelector('[lang="en"]').textContent =
+      on ? "Hide what each one was used for" : "Show what each one was used for";
+    detailBtn.querySelector('[lang="fr"]').textContent =
+      on ? "Masquer à quoi chacune a servi" : "Afficher à quoi chacune a servi";
+  });
+})();
+</script>
+
+</body>
+</html>
